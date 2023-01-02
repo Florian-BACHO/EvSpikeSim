@@ -9,15 +9,28 @@ This project aims to provide fast and accurate simulations of SNNs for the devel
 - Python interface with numpy arrays
 - Fully-connected layers of Leaky Integrate-and-Fire (LIF) neurons
 
-## Requirements
+## Neuron Model
 
-- cmake (>= 3.16)
-- Python3 (>= 3.8)
-- Numpy (>=1.20)
+The neuron model implemented in this simulator is the Current-Based Leaky Integrate-and-Fire (CuBa LIF) neuron. Its defined by the following system of ordinary differential equations:
+```math
+\left\{\begin{matrix}
+\frac{du_i(t))}{dt}=-\frac{u_i(t))}{\tau} + g_i(t) - \underbrace{\vartheta \delta\left ( u(t) - \vartheta \right )}_{\text{Reset}}\\
+\frac{dg_i(t))}{dt}=-\frac{g_i(t))}{\tau_s} + \underbrace{\sum_{j} w_{i,j} \sum_{t_j} \delta\left ( t_j - t \right)}_{\text{Pre-synaptic spikes}}
+\end{matrix}\right.
+```
+where $g_i(t)$ and $u_i(t)$ are the synaptic current and membrane potential of the post-synaptic neuron $i$, $\tau_s$ and $\tau$ are the synaptic and membrane time constants, $w_{i,j}$ is the weight between the post-synaptic neuron $i$ and the pre-synaptic neuron $j$, $t_j$ is a pre-synaptic spike timing, $\vartheta$ is the threshold of the neuron and $\delta(x)$ is the Dirac Delta function.
+
+When the membrane potential reaches its threshold, i.e. $u_i(t)=\vartheta$, a post-synaptic spike is emitted by the neuron $i$ at time $t$.
 
 ## Build and Install
 
 ### Python3
+
+#### Requirements
+
+- cmake (>= 3.16)
+- Python3 (>= 3.8)
+- Numpy (>=1.20)
 
 The following command builds the EvSpikeSim Python3 package:
 ```console
@@ -33,6 +46,10 @@ python setup.py install --user
 ```
 
 ### C Language
+
+#### Requirements
+
+- cmake (>= 3.16)
 
 Run the following sequence of commands to build the C static library:
 ```console
