@@ -14,8 +14,8 @@ typedef struct network {
 } network_t;
 
 network_t network_init();
-const fc_layer_t *network_add_fc_layer(network_t *network, fc_layer_params_t params,
-				       float (*init_fct)());
+fc_layer_t *network_add_fc_layer(network_t *network, fc_layer_params_t params,
+				 float (*init_fct)());
 void network_destroy(network_t *network);
 void network_reset(network_t *network);
 const spike_list_t *network_infer(network_t *network, const spike_list_t *input_spikes);

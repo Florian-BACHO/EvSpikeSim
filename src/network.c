@@ -6,8 +6,8 @@ inline network_t network_init() {
     return (network_t){0, 0, 0};
 } 
 
-const fc_layer_t *network_add_fc_layer(network_t *network, fc_layer_params_t params,
-				       float (*init_fct)()) {
+fc_layer_t *network_add_fc_layer(network_t *network, fc_layer_params_t params,
+				 float (*init_fct)()) {
     fc_layer_t *new_layer = fc_layer_new(params, init_fct);
     
     network->n_layers++;

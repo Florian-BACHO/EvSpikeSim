@@ -113,8 +113,6 @@ PyObject *py_network_infer(py_network_t *self, PyObject *args) {
     if (input_spikes == 0)
         return 0;
     output_spikes = network_infer(&self->network, input_spikes);
-    if (output_spikes == 0)
-	return 0;
     spike_list_destroy(input_spikes);
 
     Py_INCREF(Py_None);

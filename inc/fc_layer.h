@@ -7,11 +7,14 @@
 typedef struct {
     fc_layer_params_t params;
     float *weights;
-    float *a;
-    float *b;
     spike_list_t *post_spikes;
     unsigned int *n_spikes;
     unsigned int total_n_spikes;
+    // For internal use
+    float *a;
+    float *b;
+    bool *fired; // used with GPU only
+    float *spike_times; // used with GPU only
 } fc_layer_t;
 
 fc_layer_t *fc_layer_new(fc_layer_params_t params, float (*init_fct)());

@@ -14,7 +14,7 @@ fc_layer_t *fc_layer_new(fc_layer_params_t params, float (*init_fct)()) {
     if (out == 0)
 	return 0;
     out->params = params;
-    out->weights = malloc(params.n_neurons * params.n_inputs * sizeof(float *));
+    out->weights = malloc(params.n_neurons * params.n_inputs * sizeof(float));
     out->a = calloc(params.n_neurons, sizeof(float));
     out->b = calloc(params.n_neurons, sizeof(float));
     out->n_spikes = calloc(params.n_neurons, sizeof(unsigned int));
@@ -51,7 +51,7 @@ void fc_layer_set_weights(fc_layer_t *layer, const float *new_weights) {
 }
 
 static void update_state(fc_layer_t *layer, const spike_list_t *pre_spike) {
-    int pre_idx = pre_spike->index;
+    unsigned int pre_idx = pre_spike->index;
     float weight;
 
     for (unsigned int i = 0; i < layer->params.n_neurons; i++) {
@@ -115,7 +115,7 @@ static bool fire_neuron(fc_layer_t *layer, int neuron_idx, float current_time, f
 	    prev_time = spike_time;
 	    b = apply_reset(b, c, inside_log);
 	}
-    } while(valid_spike);
+    } while (valid_spike);
     layer->b[neuron_idx] = b;
     return true;
 }
