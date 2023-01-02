@@ -157,7 +157,36 @@ print(output_spike_counts)
 
 #### Linkage
 
+To compile your C projects with our simulator, the `evspikesim` and the math libraries need to be linked:
+```console
+gcc -o foo foo.c -levspikesim -lm
+```
+or
+```console
+ld -o foo foo.o -levspikesim -lm
+```
+
 #### Spike List
+
+Spike events are stored in a doubly-circular linked list where nodes are of type `spike_list_t`. This structure has the following definition:
+```c
+typedef struct spike_list {
+    struct spike_list *prev;
+    struct spike_list *next;
+    unsigned int index;
+    float time;
+} spike_list_t;
+```
+Each node of this linked list represent a spike with a given neuron index and spike timing. Nodes are sorted in ascending order of time.
+An empty list is represented by a `NULL` pointer. New spikes can be added to a list using the `spike_list_add` function, such as:
+```c
+unsigned int spike_idx = 42;
+float spike_time = 0.013;
+spike_list_t *inputs = 0;
+
+inputs = spike_list_add(inputs, spike_idx, spike_time);
+```
+
 
 #### Create a network
 
