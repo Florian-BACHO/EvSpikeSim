@@ -39,6 +39,7 @@ def main():
     print(input_times)
     
     # Inference
+    network.reset()
     network.infer(input_indices, input_times)
 
     

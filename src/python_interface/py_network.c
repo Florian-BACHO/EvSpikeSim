@@ -9,7 +9,7 @@
 PyMethodDef py_network_methods[4] = {
 				     {"add_fc_layer", (PyCFunction) py_network_add_fc_layer, METH_VARARGS,
 				      "Adds a fully-connected layer to the network."},
-				     {"reset", (PyCFunction) py_network_add_fc_layer, METH_NOARGS,
+				     {"reset", (PyCFunction) py_network_reset, METH_NOARGS,
 				      "Resets the state of the network."},
 				     {"infer", (PyCFunction) py_network_infer, METH_VARARGS,
 				      "Infers the network with the given input spikes."
@@ -81,7 +81,6 @@ PyObject *py_network_add_fc_layer(py_network_t *self, PyObject *args) {
 
 PyObject *py_network_reset(py_network_t *self, PyObject *Py_UNUSED(ignored)) {
     network_reset(&self->network);
-
     Py_INCREF(Py_None);
     return Py_None;
 }

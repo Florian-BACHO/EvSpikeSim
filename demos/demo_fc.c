@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "spike_list.h"
-#include "fc_layer.h"
-#include "fc_layer_params.h"
-#include "network.h"
-#include "random.h"
+#include <evspikesim/spike_list.h>
+#include <evspikesim/fc_layer.h>
+#include <evspikesim/fc_layer_params.h>
+#include <evspikesim/network.h>
+#include <evspikesim/random.h>
 
 static inline float init_fct(void) {
     return random_uniform_float(-1.0f, 1.0f);
@@ -76,6 +76,7 @@ int main() {
     spike_list_print(input_spikes);
 
     // Inference
+    network_reset(&network);
     output_spikes = network_infer(&network, input_spikes);
     if (output_spikes == 0)
 	return 1;
