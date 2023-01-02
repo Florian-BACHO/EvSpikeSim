@@ -33,7 +33,7 @@ void print_spike_counts(unsigned int *n_spikes, unsigned int n_neurons) {
     printf("\n");
 }
 
-int main() {
+int main(void) {
     random_set_seed(42); // Set seed for reproducibility
     // Inputs
     unsigned int n_inputs = 100;
@@ -93,4 +93,6 @@ int main() {
     // Free memory
     spike_list_destroy(input_spikes);
     network_destroy(&network);
+
+    return 0;
 }

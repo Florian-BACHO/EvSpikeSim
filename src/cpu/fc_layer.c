@@ -22,7 +22,8 @@ fc_layer_t *fc_layer_new(fc_layer_params_t params, float (*init_fct)()) {
     out->post_spikes = 0;
     if (out->weights == 0 || out->a == 0 || out->b == 0 || out->n_spikes == 0)
 	return 0;
-    initialize_weights(out->weights, params.n_inputs, params.n_neurons, init_fct);
+    if (init_fct != 0)
+	initialize_weights(out->weights, params.n_inputs, params.n_neurons, init_fct);
     return out;
 }
 
