@@ -180,12 +180,21 @@ typedef struct spike_list {
 Each node of this linked list represent a spike with a given neuron index and spike timing. Nodes are sorted in ascending order of time.
 An empty list is represented by a `NULL` pointer. New spikes can be added to a list using the `spike_list_add` function, such as:
 ```c
+#include <assert.h>
+#include <evspikesim/spike_list.h>
+
+...
+
 unsigned int spike_idx = 42;
 float spike_time = 0.013;
 spike_list_t *inputs = 0;
 
 inputs = spike_list_add(inputs, spike_idx, spike_time);
+assert(inputs != 0);
+
+...
 ```
+The methods returns `NULL` if dynamic allocation failed;
 
 
 #### Create a network
