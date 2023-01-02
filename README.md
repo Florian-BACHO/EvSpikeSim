@@ -8,6 +8,7 @@ This project aims to provide fast and accurate simulations of SNNs for the devel
 
 - Python interface with numpy arrays
 - Fully-connected layers of Leaky Integrate-and-Fire (LIF) neurons
+- GPU support
 
 ## Neuron Model
 
@@ -26,11 +27,11 @@ When the membrane potential reaches its threshold, i.e. $u_i(t)=\vartheta$, a po
 
 ### Python3
 
-#### Requirements
-
+Requirements:
 - cmake (>= 3.16)
 - Python3 (>= 3.8)
 - Numpy (>=1.20)
+- Cuda (if install for GPU) (>=11.6)
 
 The following command builds the EvSpikeSim Python3 package:
 ```console
@@ -40,6 +41,13 @@ To install the build and install the package, run:
 ```console
 python setup.py install
 ```
+For GPU builds and/or install, first specify the path to the Cuda directory in the `CUDAHOME` add the `--gpu` argument to the command:
+```console
+export CUDAHOME=/PATH/TO/cuda
+python setup.py install --gpu
+```
+If installed for GPU, the default GPU device will be used instead of the CPU during inference.
+
 If the installation fails due to permission issues, try installing in the user site-package using the `--user` argument:
 ```console
 python setup.py install --user
@@ -50,8 +58,10 @@ python setup.py install --user
 #### Requirements
 
 - cmake (>= 3.16)
+- Cuda (if install for GPU) (>=11.6)
 
-Run the following sequence of commands to build the C static library:
+Copy either the `CMakeLists_cpu.txt` or the `CMakeLists_gpu.txt` under the name 'CMakeLists.txt' to compile for CPU or GPU.
+Then, run the following sequence of commands to build the static library:
 ```console
 mkdir build
 cd build
@@ -183,6 +193,10 @@ gcc -o foo foo.c -levspikesim -lm
 or
 ```console
 ld -o foo foo.o -levspikesim -lm
+```
+For GPU, compile as follows:
+```console
+gcc -o foo foo.c -levspikesim -lm -lcuda -lcudart -lstdc++
 ```
 
 #### Spike List
@@ -352,7 +366,6 @@ The `n_spikes` function has a size of (n_neurons,) and stores the neurons spike 
 
 The following example shows the inference of three 2-input LIF neuron with weights `[[1.0, 2.0], [-0.1, 0.8], [0.5, 0.4]]` and driven by two input spikes `(idx: 0, time: 0.1)` and `(idx: 1, time: 0.15)`
 ```c
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -379,15 +392,14 @@ int main(void) {
     // Network definition                                                                            
     fc_layer_params_t params = fc_layer_params_new(2, 3, 0.020f, 0.020 * 0.1);
     network_t network = network_init();
-    const fc_layer_t *layer = network_add_fc_layer(&network, params, 0);
+    fc_layer_t *layer = network_add_fc_layer(&network, params, 0);
     const spike_list_t *output_spikes;
 
     if (layer == 0)
         return 1;
     
     // Copy weights
-    memcpy(layer->weights, weights,
-           layer->params.n_neurons * layer->params.n_inputs * sizeof(float));
+    fc_layer_set_weights(layer, weights);
 
     // Inference                                                                                     
     network_reset(&network);
@@ -414,7 +426,6 @@ int main(void) {
 
 ## Coming Features
 
-- GPU support
 - Mini-batch learning
 - Local gradients computation
 - Spike Time-Dependent Plasticity (STDP)
