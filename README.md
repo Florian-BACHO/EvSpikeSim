@@ -194,7 +194,7 @@ assert(inputs != 0);
 
 ...
 ```
-The methods returns `NULL` if dynamic allocation failed;
+The function returns `NULL` if dynamic allocation failed;
 
 
 #### Create a network
