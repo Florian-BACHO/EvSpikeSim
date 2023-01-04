@@ -14,7 +14,7 @@ def main():
 
     # Inputs
     n_inputs = 1024
-    n_input_spikes = 100
+    n_input_spikes = 1000
     max_input_spike_time = 0.010 # 10 ms
     # Random input generation
     input_indices = np.random.randint(0, n_inputs, size=(n_input_spikes,),
@@ -26,7 +26,7 @@ def main():
     n_neurons_hidden_1 = 1024
     n_neurons_hidden_2 = 1024
     tau_s = 0.010 # Synaptic time constant of 10 ms. Membrane time constant is tau = 2 * tau_s = 20 ms 
-    threshold_hidden_1 = 1.0 * tau_s
+    threshold_hidden_1 = 10.0 * tau_s
     threshold_hidden_2 = 8.0 * tau_s
     threshold_out = 4.0 * tau_s
 
@@ -41,7 +41,7 @@ def main():
     network.infer(input_indices, input_times)
     print(network[0].spike_counts.sum())
     
-    print(timeit(lambda: infer(network, input_indices, input_times), number=10))
+    print(timeit(lambda: infer(network, input_indices, input_times), number=10000))
     
 if __name__ == "__main__":
     main()

@@ -86,17 +86,17 @@ PyObject *py_network_reset(py_network_t *self, PyObject *Py_UNUSED(ignored)) {
 }
 
 // Convert arguments into a spike list
-static spike_list_t *get_input_spikes(PyObject *args) {
+static spike_list_t *get_input_spikes(PyObject *args, unsigned int *n_spikes) {
     PyArrayObject *spike_indices, *spike_times;
-    int n_spikes, spike_idx;
+    unsigned int spike_idx;
     float spike_time;
     spike_list_t *out = 0;
 
     if(!PyArg_ParseTuple(args, "OO", &spike_indices, &spike_times))
 	return 0;
-    n_spikes = PyArray_DIMS(spike_indices)[0];
+    *n_spikes = PyArray_DIMS(spike_indices)[0];
 
-    for (int i = 0; i < n_spikes; i++) {
+    for (unsigned int i = 0; i < *n_spikes; i++) {
 	spike_idx = *(unsigned int *)PyArray_GETPTR1(spike_indices, i);
         spike_time = *(float *)PyArray_GETPTR1(spike_times, i);
         out = spike_list_add(out, spike_idx, spike_time);
@@ -107,12 +107,12 @@ static spike_list_t *get_input_spikes(PyObject *args) {
 }
 
 PyObject *py_network_infer(py_network_t *self, PyObject *args) {
-    spike_list_t *input_spikes = get_input_spikes(args);
-    const spike_list_t *output_spikes;
+    unsigned int n_input_spikes;
+    spike_list_t *input_spikes = get_input_spikes(args, &n_input_spikes);
 
     if (input_spikes == 0)
         return 0;
-    output_spikes = network_infer(&self->network, input_spikes);
+    network_infer(&self->network, input_spikes, n_input_spikes);
     spike_list_destroy(input_spikes);
 
     Py_INCREF(Py_None);

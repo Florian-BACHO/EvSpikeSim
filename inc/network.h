@@ -18,6 +18,7 @@ fc_layer_t *network_add_fc_layer(network_t *network, fc_layer_params_t params,
 				 float (*init_fct)());
 void network_destroy(network_t *network);
 void network_reset(network_t *network);
-const spike_list_t *network_infer(network_t *network, const spike_list_t *input_spikes);
+const spike_list_t *network_infer(network_t *network, const spike_list_t *input_spikes,
+				  unsigned int n_pre_spikes);
 
 #endif
