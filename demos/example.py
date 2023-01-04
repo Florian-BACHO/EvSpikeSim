@@ -4,7 +4,7 @@ import evspikesim as sim
 # Network definition                                                                                
 network = sim.Network()
 network.add_fc_layer(2, 3, 0.020, 0.020 * 0.1)
-network[0].weights = np.array([[1.0, 2.0],
+network[0].weights = np.array([[-1.0, -2.0],
                                [-0.1, 0.8],
                                [0.5, 0.4]], dtype=np.float32)
 

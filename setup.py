@@ -28,7 +28,7 @@ GPU_SOURCES = ["src/python_interface/py_module_init.c",
 
 def setup_cpu():
     setup(name="EvSpikeSim",
-          version="0.1.1",
+          version="0.2.0",
           description="An Event-Based Spiking Neural Network Simulator written in C",
           author="Florian Bacho",
           author_email="fb320@kent.ac.uk",
