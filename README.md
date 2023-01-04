@@ -1,7 +1,7 @@
-# EvSpikeSim (Beta)
+# EvSpikeSim (Experimental)
 
 ## Project Description
-EvSpikeSim is an event-based Spiking Neural Networks (SNNs) simulator written in C for high performance and interfaced with Python for easy usage.
+EvSpikeSim is an experimental event-based Spiking Neural Networks (SNNs) simulator written in C for high performance and interfaced with Python for easy usage.
 This project aims to provide fast and accurate simulations of SNNs for the development of neuromorphic training algorithms.
 
 ## Implemented Features

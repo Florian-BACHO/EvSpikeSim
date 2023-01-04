@@ -77,7 +77,7 @@ int main(void) {
 
     // Inference
     network_reset(&network);
-    output_spikes = network_infer(&network, input_spikes);
+    output_spikes = network_infer(&network, input_spikes, n_input_spikes);
     if (output_spikes == 0)
 	return 1;
 

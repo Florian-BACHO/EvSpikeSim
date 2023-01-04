@@ -130,7 +130,8 @@ static bool integrate_pre_spike(fc_layer_t *layer, const spike_list_t *pre_spike
     return true;
 }
 
-const spike_list_t *fc_layer_infer(fc_layer_t *layer, const spike_list_t *pre_spikes_start) {
+const spike_list_t *fc_layer_infer(fc_layer_t *layer, const spike_list_t *pre_spikes_start,
+				   unsigned int total_n_spikes) {
     const spike_list_t *current_pre_spike = pre_spikes_start;
     float next_pre_time, delta_t;
 

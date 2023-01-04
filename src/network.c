@@ -46,13 +46,15 @@ void network_reset(network_t *network) {
     }
 }
 
-const spike_list_t *network_infer(network_t *network, const spike_list_t *spikes) {
+const spike_list_t *network_infer(network_t *network, const spike_list_t *spikes,
+				  unsigned int n_pre_spikes) {
     for (unsigned int i = 0; i < network->n_layers; i++) {
 	switch (network->layer_types[i]) {
 	case FC:
-	    spikes = fc_layer_infer((fc_layer_t *)network->layers[i], spikes);
+	    spikes = fc_layer_infer((fc_layer_t *)network->layers[i], spikes, n_pre_spikes);
 	    if (spikes == 0)
 		return 0; // Dynamic allocation failed
+	    n_pre_spikes = ((fc_layer_t *)network->layers[i])->total_n_spikes;
 	    break;
 	default:
 	    break;
