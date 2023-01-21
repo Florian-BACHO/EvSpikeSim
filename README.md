@@ -31,7 +31,7 @@ In this simulator, **membrane time constants are constrained to 2x the synaptic 
 ### Python3
 
 Requirements:
-- cmake (>= 3.16)
+- cmake (>= 3.14)
 - Python3 (>= 3.8)
 - Numpy (>=1.20)
 - Cuda (if install for GPU) (>=11.6)
