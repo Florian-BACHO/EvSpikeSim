@@ -5,6 +5,7 @@ project(evspikesim
   LANGUAGES C)
 
 add_library(evspikesim STATIC
+  src/cpu/infer_thread_pool.c
   src/cpu/fc_layer.c
   src/fc_layer_params.c
   src/network.c
@@ -15,6 +16,7 @@ target_include_directories (evspikesim PUBLIC inc)
 
 install(TARGETS evspikesim DESTINATION lib)
 install(FILES
+  inc/infer_thread_pool.h
   inc/fc_layer.h
   inc/fc_layer_params.h
   inc/layer_type.h
