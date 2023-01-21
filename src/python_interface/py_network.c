@@ -37,25 +37,40 @@ PyTypeObject py_network_type = {
 				.tp_itemsize = 0,
 				.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 				.tp_new = py_network_new,
+				.tp_init = (initproc) py_network_init,
 				.tp_dealloc = (destructor) py_network_dealloc,
 				.tp_methods = py_network_methods,
 				.tp_as_mapping = &py_network_mapping,
 				.tp_getset = py_network_getset,
 };
 
-void py_network_dealloc(py_network_t *self) {
-    network_destroy(&self->network);
-    
-    Py_TYPE(self)->tp_free((PyObject *) self);
-}
-
 PyObject *py_network_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     py_network_t *self;
     self = (py_network_t *) type->tp_alloc(type, 0);
     if (self != NULL) {
-	self->network = network_init();
+	self->network = 0;
     }
     return (PyObject *) self;
+}
+
+int py_network_init(py_network_t *self, PyObject *args, PyObject *kwds)
+{
+    static char *kwlist[] = {"n_threads", NULL};
+    unsigned int n_threads = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|I", kwlist, &n_threads))
+        return -1;
+
+    self->network = network_new(n_threads);
+    if (self->network == 0)
+	return -1;
+    return 0;
+}
+
+void py_network_dealloc(py_network_t *self) {
+    network_destroy(self->network);
+    
+    Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
 static inline float init_fct(void) {
@@ -72,7 +87,7 @@ PyObject *py_network_add_fc_layer(py_network_t *self, PyObject *args) {
         return 0;
 
     params = fc_layer_params_new(n_inputs, n_neurons, tau_s, threshold);
-    if (network_add_fc_layer(&self->network, params, &init_fct) == 0)
+    if (network_add_fc_layer(self->network, params, &init_fct) == 0)
 	return 0;
 
     Py_INCREF(Py_None);
@@ -80,23 +95,23 @@ PyObject *py_network_add_fc_layer(py_network_t *self, PyObject *args) {
 }
 
 PyObject *py_network_reset(py_network_t *self, PyObject *Py_UNUSED(ignored)) {
-    network_reset(&self->network);
+    network_reset(self->network);
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 // Convert arguments into a spike list
-static spike_list_t *get_input_spikes(PyObject *args) {
+static spike_list_t *get_input_spikes(PyObject *args, unsigned int *n_spikes) {
     PyArrayObject *spike_indices, *spike_times;
-    int n_spikes, spike_idx;
+    unsigned int spike_idx;
     float spike_time;
     spike_list_t *out = 0;
 
     if(!PyArg_ParseTuple(args, "OO", &spike_indices, &spike_times))
 	return 0;
-    n_spikes = PyArray_DIMS(spike_indices)[0];
+    *n_spikes = PyArray_DIMS(spike_indices)[0];
 
-    for (int i = 0; i < n_spikes; i++) {
+    for (unsigned int i = 0; i < *n_spikes; i++) {
 	spike_idx = *(unsigned int *)PyArray_GETPTR1(spike_indices, i);
         spike_time = *(float *)PyArray_GETPTR1(spike_times, i);
         out = spike_list_add(out, spike_idx, spike_time);
@@ -107,12 +122,12 @@ static spike_list_t *get_input_spikes(PyObject *args) {
 }
 
 PyObject *py_network_infer(py_network_t *self, PyObject *args) {
-    spike_list_t *input_spikes = get_input_spikes(args);
-    const spike_list_t *output_spikes;
+    unsigned int n_input_spikes;
+    spike_list_t *input_spikes = get_input_spikes(args, &n_input_spikes);
 
     if (input_spikes == 0)
         return 0;
-    output_spikes = network_infer(&self->network, input_spikes);
+    network_infer(self->network, input_spikes, n_input_spikes);
     spike_list_destroy(input_spikes);
 
     Py_INCREF(Py_None);
@@ -120,11 +135,11 @@ PyObject *py_network_infer(py_network_t *self, PyObject *args) {
 }
 
 PyObject *py_network_get_output_layer(py_network_t *self, void *closure) {
-    return py_network_get_item(self, PyLong_FromLong(self->network.n_layers - 1));
+    return py_network_get_item(self, PyLong_FromLong(self->network->n_layers - 1));
 }
 
 Py_ssize_t py_network_len(py_network_t *self) {
-    return (Py_ssize_t)self->network.n_layers;
+    return (Py_ssize_t)self->network->n_layers;
 }
 
 PyObject *py_network_get_item(py_network_t *self, PyObject *key) {
@@ -135,15 +150,15 @@ PyObject *py_network_get_item(py_network_t *self, PyObject *key) {
     if (!PyLong_Check(key))
 	return 0;
     layer_idx = (unsigned int) PyLong_AsLong(key);
-    if (layer_idx >= self->network.n_layers)
+    if (layer_idx >= self->network->n_layers)
 	return 0;
 
-    switch (self->network.layer_types[layer_idx]) {
+    switch (self->network->layer_types[layer_idx]) {
     case FC:
 	fc_out = (py_fc_layer_t *)PyType_GenericNew(&py_fc_layer_type, NULL, NULL);
 	if (fc_out == 0)
 	    return 0;
-	fc_out->layer = (fc_layer_t *)self->network.layers[layer_idx];
+	fc_out->layer = (fc_layer_t *)self->network->layers[layer_idx];
 	out = (PyObject *)fc_out;
 	break;
     default:
