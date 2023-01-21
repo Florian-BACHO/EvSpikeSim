@@ -9,7 +9,8 @@ extern "C" {
 #include <string.h>
 #include "fc_layer.h"
 
-static void initialize_weights(float *weights, int n_inputs, int n_neurons, float (*init_fct)()) {
+static void initialize_weights(float *weights, int n_inputs, int n_neurons,
+			       float (*init_fct)(void)) {
     for (int i = 0; i < n_neurons * n_inputs; i++)
 	weights[i] = (*init_fct)();
 }

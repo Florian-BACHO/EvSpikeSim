@@ -21,10 +21,15 @@ int main(void) {
     if (input_spikes == 0)
         return 1;
 
-    // Network definition                                                                            
+    // Network definition
+    unsigned int n_threads = 0;
     fc_layer_params_t params = fc_layer_params_new(2, 3, 0.020f, 0.020 * 0.1);
-    network_t network = network_init();
-    fc_layer_t *layer = network_add_fc_layer(&network, params, 0);
+    network_t *network = network_new(n_threads);
+
+    if (network == 0)
+	return 1;
+    
+    fc_layer_t *layer = network_add_fc_layer(network, params, 0);
     const spike_list_t *output_spikes;
 
     if (layer == 0)
@@ -33,13 +38,14 @@ int main(void) {
     // Copy weights
     fc_layer_set_weights(layer, weights);
 
-    // Inference                                                                                     
-    network_reset(&network);
-    output_spikes = network_infer(&network, input_spikes, 2);
+    // Inference
+    
+    network_reset(network);
+    output_spikes = network_infer(network, input_spikes, 2);
     if (output_spikes == 0)
         return 1;
 
-    // Print spikes                                                                                  
+    // Print spikes                                                                          
     spike_list_print(output_spikes);
     
     // Print spike count                                                                             
@@ -47,9 +53,9 @@ int main(void) {
         printf("%d ", layer->n_spikes[i]);
     printf("\n");
 
-    // Free memory                                                                                   
+    // Free memory
     spike_list_destroy(input_spikes);
-    network_destroy(&network);
+    network_destroy(network);
 
     return 0;
 }

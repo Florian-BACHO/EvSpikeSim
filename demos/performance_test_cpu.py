@@ -31,17 +31,35 @@ def main():
     threshold_out = 4.0 * tau_s
 
     # Network instanciation
-    network = sim.Network()
+    network = sim.Network(n_threads=0)
 
     # Create layers
     network.add_fc_layer(n_inputs, n_neurons_hidden_1, tau_s, threshold_hidden_1)
-    #network.add_fc_layer(n_neurons_hidden_1, n_neurons_hidden_2, tau_s, threshold_hidden_2)
+    network.add_fc_layer(n_neurons_hidden_1, n_neurons_hidden_2, tau_s, threshold_hidden_2)
 
     network.reset()
     network.infer(input_indices, input_times)
-    print(network[0].spike_counts.sum())
+    print("Layers total spike counts:")
+    print(network[0].spike_counts.sum(), network[1].spike_counts.sum())
+    print()
+
+    print("Running time for 100 inferences (main thread only):")
+    time = timeit(lambda: infer(network, input_indices, input_times), number=100)
+    print(f"{time} seconds")
+    print()
+
     
-    print(timeit(lambda: infer(network, input_indices, input_times), number=10000))
+    # Network instanciation
+    n_threads = 16
+    network = sim.Network(n_threads)
+
+    # Create layers
+    network.add_fc_layer(n_inputs, n_neurons_hidden_1, tau_s, threshold_hidden_1)
+    network.add_fc_layer(n_neurons_hidden_1, n_neurons_hidden_2, tau_s, threshold_hidden_2)
+
+    print(f"Running time for 100 inferences ({n_threads} threads):")
+    time = timeit(lambda: infer(network, input_indices, input_times), number=100)
+    print(f"{time} seconds")
     
 if __name__ == "__main__":
     main()
