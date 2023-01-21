@@ -1,15 +1,26 @@
 #include <stdlib.h>
+#include <string.h>
 #include "network.h"
 #include "fc_layer.h"
 
-inline network_t network_init() {
-    return (network_t){0, 0, 0};
+inline network_t *network_new(unsigned int n_threads) {
+    network_t *out = malloc(sizeof(network_t));
+
+    if (out == 0)
+	return 0;
+    memset(out, 0, sizeof(network_t));
+    if (n_threads == 0)
+	return out;
+    out->thread_pool = infer_thread_pool_new(n_threads);
+    if (out->thread_pool == 0)
+	return 0;
+    return out;
 } 
 
 fc_layer_t *network_add_fc_layer(network_t *network, fc_layer_params_t params,
-				 float (*init_fct)()) {
-    fc_layer_t *new_layer = fc_layer_new(params, init_fct);
-    
+				 float (*init_fct)(void)) {
+    fc_layer_t *new_layer = fc_layer_new(params, init_fct, network->thread_pool);
+
     network->n_layers++;
     network->layer_types = realloc(network->layer_types, network->n_layers * sizeof(layer_type_t));
     network->layers = realloc(network->layers, network->n_layers * sizeof(void *));
@@ -30,8 +41,11 @@ void network_destroy(network_t *network) {
 	    break;
 	}
     }
+    if (network->thread_pool != 0)
+	infer_thread_pool_destroy(network->thread_pool);
     free(network->layer_types);
     free(network->layers);
+    free(network);
 }
 
 void network_reset(network_t *network) {

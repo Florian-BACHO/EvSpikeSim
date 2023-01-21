@@ -63,10 +63,15 @@ int main(void) {
     const spike_list_t *output_spikes;
 
     // Network instanciation
-    network_t network = network_init();
-    const fc_layer_t *hidden_layer_1 = network_add_fc_layer(&network, params_hidden_1, &init_fct);
-    const fc_layer_t *hidden_layer_2 = network_add_fc_layer(&network, params_hidden_2, &init_fct);
-    const fc_layer_t *output_layer = network_add_fc_layer(&network, params_out, &init_fct);
+    unsigned int n_threads = 8;
+    network_t *network = network_new(n_threads);
+
+    if (network == 0)
+	return 1;
+    
+    const fc_layer_t *hidden_layer_1 = network_add_fc_layer(network, params_hidden_1, &init_fct);
+    const fc_layer_t *hidden_layer_2 = network_add_fc_layer(network, params_hidden_2, &init_fct);
+    const fc_layer_t *output_layer = network_add_fc_layer(network, params_out, &init_fct);
 
     // Create layers
     if (hidden_layer_1 == 0 || hidden_layer_2 == 0 || output_layer == 0)
@@ -76,8 +81,8 @@ int main(void) {
     spike_list_print(input_spikes);
 
     // Inference
-    network_reset(&network);
-    output_spikes = network_infer(&network, input_spikes, n_input_spikes);
+    network_reset(network);
+    output_spikes = network_infer(network, input_spikes, n_input_spikes);
     if (output_spikes == 0)
 	return 1;
 
@@ -92,7 +97,7 @@ int main(void) {
 
     // Free memory
     spike_list_destroy(input_spikes);
-    network_destroy(&network);
+    network_destroy(network);
 
     return 0;
 }

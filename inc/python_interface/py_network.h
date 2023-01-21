@@ -6,12 +6,13 @@
 
 typedef struct {
     PyObject_HEAD;
-    network_t network;
+    network_t *network;
 } py_network_t;
 
 // Constructor and destructor
-void py_network_dealloc(py_network_t *self);
 PyObject *py_network_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+int py_network_init(py_network_t *self, PyObject *args, PyObject *kwds);
+void py_network_dealloc(py_network_t *self);
 
 // Methods
 PyObject *py_network_add_fc_layer(py_network_t *self, PyObject *args);

@@ -13,6 +13,7 @@ CPU_SOURCES = ["src/python_interface/py_module_init.c",
                "src/spike_list.c",
                "src/random.c",
                "src/cpu/fc_layer.c",
+               "src/cpu/infer_thread_pool.c",
                "src/fc_layer_params.c",
                "src/network.c"]
 
@@ -27,14 +28,21 @@ GPU_SOURCES = ["src/python_interface/py_module_init.c",
                "src/network.c"]
 
 def setup_cpu():
+    try:
+        numpy_include = np.get_include()
+    except AttributeError:
+        numpy_include = np.get_numpy_include()
+
+    cpu_extension = Extension("evspikesim", 
+                              libraries=["m", "pthread"],
+                              sources=CPU_SOURCES)
     setup(name="EvSpikeSim",
           version="0.2.0",
           description="An Event-Based Spiking Neural Network Simulator written in C",
           author="Florian Bacho",
           author_email="fb320@kent.ac.uk",
-          include_dirs = ["inc", np.get_include()],
-          install_requires=["numpy"],
-          ext_modules=[Extension("evspikesim", CPU_SOURCES)])
+          include_dirs = ["inc", numpy_include],
+          ext_modules=[cpu_extension])
 
 def find_in_path(name, path):
     "Find a file in a search path"
@@ -138,7 +146,7 @@ def setup_gpu():
                 # the implementation of this trick is in customize_compiler() below
                 extra_compile_args={'gcc': [],
                                     'nvcc': ['-c', '--compiler-options', "'-fPIC'"]},
-                include_dirs = ["inc", numpy_include, CUDA['include'], 'src'])
+                include_dirs = ["inc", numpy_include, CUDA['include']])
     
     setup(name="EvSpikeSim",
           version="0.1.1",
