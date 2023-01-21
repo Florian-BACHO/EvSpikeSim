@@ -6,8 +6,9 @@ This project aims to provide fast and accurate simulations of SNNs for the devel
 
 ## Implemented Features
 
-- Python interface with numpy arrays
 - Fully-connected layers of Leaky Integrate-and-Fire (LIF) neurons
+- Simple Python3 interface compatible with numpy arrays
+- Theading support on CPU
 - GPU support
 
 ## Neuron Model
@@ -22,6 +23,8 @@ The neuron model implemented in this simulator is the Current-Based Leaky Integr
 where $g_i(t)$ and $u_i(t)$ are the synaptic current and membrane potential of the post-synaptic neuron $i$, $\tau_s$ and $\tau$ are the synaptic and membrane time constants, $w_{i,j}$ is the weight between the post-synaptic neuron $i$ and the pre-synaptic neuron $j$, $t_j$ is a pre-synaptic spike timing, $\vartheta$ is the threshold of the neuron and $\delta(x)$ is the Dirac Delta function.
 
 When the membrane potential reaches its threshold, i.e. $u_i(t)=\vartheta$, a post-synaptic spike is emitted by the neuron $i$ at time $t$.
+
+In this simulator, **membrane time constants are constrained to 2x the synaptic time constants**, i.e. $\tau = 2 \tau_s$. This allows us to isolate a closed-form solution for the spike time and achieve fast event-based inference without the use of numerical solvers. See ref [1, 2] for more details.
 
 ## Build and Install
 
@@ -79,7 +82,7 @@ sudo make install
 
 ### Python3
 
-Import the simulator as follow:
+Import the simulator as follows:
 ```python
 import evspikesim as sim
 
@@ -104,7 +107,7 @@ network.add_fc_layer(n_inputs, n_neurons, tau_s, threshold) # Add a fully-connec
 ```
 The `add_fc_layer` method adds a fully-connected layer of LIF neurons to the network. 
 It takes four arguments:
-- the number of inputs of the layer (unsigned integer)
+- the number of inputs to the layer (unsigned integer)
 - the number of neurons in the layer (unsigned integer)
 - the synaptic time constant $\tau_s$ in seconds (floating point)
 - the threshold $\vartheta$ of the neurons (floating point)
@@ -135,6 +138,8 @@ output_spike_counts = network.output_layer.spike_counts
 ```
 Spike indices and spike times arrays must have the same shape but do not have to be sorted in time.  Note that input spike indices MUST be of type `np.uint32` and input spike timings MUST be of type `np.float32`. The network also has to be reset before inference. Finally, the output layer can be accessed through the `output_layer` member of the network object to get the output results.
 
+**Note that a number of 64 spikes are currently allowed per neuron**. This is a temporary limitation of the simulator that will be addessed in future versions.
+
 #### Weights
 
 By default, weights of a layer are randomly initialized with a random uniform distribution between -1 and 1.
@@ -151,6 +156,20 @@ weights[42, 21] += 0.42
 ...
 ```
 `network[layer_idx]` returns the corresponding layer at the given index `layer_idx`. The `weights` attribute stores the weights in a 2-D numpy array of shape `(n_neurons, n_inputs)`. Mutating this array change the weights of the network. This can be used to apply changes of weights during training.
+
+#### Parallelization
+
+If using the GPU implementation of EvSpikeSim, threads on your GPU will automatically be instanciated by the simulator and no extra step is required.
+However, if using the CPU implementation, the main thread will be used by default. To allow parallelization and improve inference speed, a number of thread can be passed as argument at the network instanciation, such as:
+
+```python
+...
+
+network = sim.Network(n_threads=16) # Creates network with 16 threads
+
+...
+```
+By default, `n_threads` is equal to 0 which refers to the main thread only. The optimal number of thread to use depends on the number of cores available on your CPU.
 
 #### Example
 
@@ -186,13 +205,13 @@ print(output_spike_counts)
 
 #### Linkage
 
-To compile your C projects with our simulator, the `evspikesim` and the math libraries need to be linked:
+To compile your C projects with our simulator, the `evspikesim`, `math` and `pthread` libraries need to be linked:
 ```console
-gcc -o foo foo.c -levspikesim -lm
+gcc -o foo foo.c -levspikesim -lm -lpthread
 ```
 or
 ```console
-ld -o foo foo.o -levspikesim -lm
+ld -o foo foo.o -levspikesim -lm -lpthread
 ```
 For GPU, compile as follows:
 ```console
@@ -210,7 +229,7 @@ typedef struct spike_list {
     float time;
 } spike_list_t;
 ```
-Each node of this linked list represent a spike with a given neuron index and spike timing. Nodes are sorted in ascending order of time.
+Each node of this linked list stores a spike even represented by a neuron index and a spike timing. Nodes are sorted in ascending order of time.
 An empty list is represented by a `NULL` pointer. New spikes can be added to a list using the `spike_list_add` function, such as:
 ```c
 #include <assert.h>
@@ -236,12 +255,11 @@ The function returns `NULL` if dynamic allocation failed; Do not forget to free 
 To iterate through a spike list, first check if the spike list is empty using the `spike_list_empty` function than loop through the nodes until the `next` attribute is equals to the first node:
 ```c
 ...
-
-spike_list_t *current_node = start_node;
-
 if (spike_list_empty(start_node))
   return; // Empty list
   
+spike_list_t *current_node = start_node;
+
 do {
   ... // Do something
   current_node = current_node->next;
@@ -252,7 +270,7 @@ do {
 
 #### Create a network
 
-A network is created by instanciating a `network_t` structure and initializing it with the `network_init()` function. Fully-connected layers are created by calling the `network_add_fc_layer` function with a `fc_layer_params_t` structure and an initialization function with prototype `float init_fct(void)` (can be set to `NULL` for no weight initialization but will require manual weights set):
+A network is created by instanciating a `network_t` structure using the `network_new` function. Fully-connected layers are created by calling the `network_add_fc_layer` function with a `fc_layer_params_t` structure and an initialization function with prototype `float init_fct(void)` (can be set to `NULL` for no weight initialization but this will require manual initialization:
 ```c
 #include <assert.h>
 #include <evspikesim/network.h>
@@ -275,14 +293,17 @@ float tau_s = 0.010 # 10 ms
 float threshold = 0.5 * tau_s // Relative to tau_s as the amplitude of the PSP kernel is proportional to tau_s
 fc_layer_params_t layer_params = fc_layer_params_new(n_inputs, n_neurons, tau_s, threshold);
 
-network_t network = network_init();
-const fc_layer_t *layer = network_add_fc_layer(&network, layer_params, &init_fct);
+network_t *network = network_new(0);
+
+assert(network != 0)
+
+const fc_layer_t *layer = network_add_fc_layer(network, layer_params, &init_fct);
 
 assert(layer != 0);
 
 ... // Inference
 
-network_destroy(&network);
+network_destroy(network);
 
 ...
 ```
@@ -305,23 +326,24 @@ To infer the network, an input spike list must be created and sent to the `netwo
 
 spike_list_t *input_spikes;
 spike_list_t *output_spikes;
-network_t network = network_init();
+network_t *network = network_new(0);
 
 ... // Create input spikes and network
 
-network_reset(&network);
-output_spikes = network_infer(&network, input_spikes);
+network_reset(network);
+output_spikes = network_infer(network, input_spikes);
 
 spike_list_print(output_spikes); // Print output spikes
 
 ...
 
 spike_list_destroy(input_spikes);
-network_destroy(&network);
+network_destroy(network);
 ```
 
-#### Layer
+**Note that a number of 64 spikes are currently allowed per neuron**. This is a temporary limitation of the simulator that will be addessed in future versions.
 
+#### Layer
 Layers can also be accessed through the `network_t` structure as follows:
 ```c
 #include <evspikesim/fc_layer.h>
@@ -329,31 +351,30 @@ Layers can also be accessed through the `network_t` structure as follows:
 
 ...
 
-network_t *network = network_init();
+network_t *network = network_new(0);
 
 ... // Create network
 
 unsigned int layer_idx = 1;
 fc_layer *layer;
 
-assert(layer_idx < network.n_layers);
-assert(network.layer_types[layer_idx] == FC); // Check layer type before cast
+assert(layer_idx < network->n_layers);
+assert(network->layer_types[layer_idx] == FC); // Check layer type before cast
 
-layer = (fc_layer_t *)network.layers[layer_idx];
+layer = (fc_layer_t *)network->layers[layer_idx];
 
 ```
-The `layer_type` attribute stores the type of the corresponding layers in the `layers` attribute. It is always good practice to test the layer type before casting to prevent from invalid memory access. 
+The `layer_type` attribute stores the type of the corresponding layers in the `layers` attribute. It is always good practice to test the layer type before casting to prevent from invalid memory accesses. 
 
 The `fc_layer_t` structure is defined as follows:
 ```c
 typedef struct {
-    fc_layer_params_t params; // Parameter structure sent at creation
-    float *weights; // Neurons weights of size (n_neurons * n_inputs)
-    float *a; // Internal state used during inference. Do not mutate.
-    float *b; // Internal state used during inference. Do not mutate.
-    spike_list_t *post_spikes; // Post synaptic spikes of the layer. Populated during inference
-    unsigned int *n_spikes; // Number of post-synaptic spikes fired by each neuron. Populated during inference
-    unsigned int total_n_spikes; // Total number of post-synaptic spikes. Set during inference
+    fc_layer_params_t params;
+    float *weights;
+    spike_list_t *post_spikes;
+    unsigned int *n_spikes;
+    unsigned int total_n_spikes;
+    // ...
 } fc_layer_t;
 ```
 Parameters and weights can be freely mutated. To change a specific weight of a neuron at index `neuron_idx` and synapse `input_idx`, use the following indexing:
@@ -361,6 +382,20 @@ Parameters and weights can be freely mutated. To change a specific weight of a n
 layer->weight[neuron_idx * layer->params.n_inputs + input_idx] += 0.2f;
 ```
 The `n_spikes` function has a size of (n_neurons,) and stores the neurons spike counts during inference. Spike events can be accessed through the `post_spikes` attribute.
+
+#### Parallelization
+
+If using the GPU implementation of EvSpikeSim, threads on your GPU will automatically be instanciated by the simulator and no extra step is required.
+However, if using the CPU implementation, parallelization can also be used to improve inference speed by setting the number of thread to use at the network instanciation, such as:
+```python
+...
+
+unsigned int n_threads = 16;
+network_t *network = network_new(n_threads);
+
+...
+```
+If `n_threads` is equal to 0, no multi-threading will be used and the inference will be executed on the main thread. The optimal number of thread to use depends on the number of cores available on your CPU.
 
 #### Example
 
@@ -375,8 +410,10 @@ The following example shows the inference of three 2-input LIF neuron with weigh
 #include <evspikesim/network.h>
 
 int main(void) {
-    // Inputs spikes                                                                                  
-    float max_input_spike_time = 0.010f; // 10 ms                                                    
+    // Inputs spikes
+                                                                                                    
+    float max_input_spike_time = 0.010f; // 10 ms
+                                                                                                    
     spike_list_t *input_spikes = 0;
     const float weights[] = {1.0, 2.0,
                              -0.1, 0.8,
@@ -389,39 +426,44 @@ int main(void) {
     if (input_spikes == 0)
         return 1;
 
-    // Network definition                                                                            
+    // Network definition                                                                           
+    unsigned int n_threads = 0;
     fc_layer_params_t params = fc_layer_params_new(2, 3, 0.020f, 0.020 * 0.1);
-    network_t network = network_init();
-    fc_layer_t *layer = network_add_fc_layer(&network, params, 0);
+    network_t *network = network_new(n_threads);
+
+    if (network == 0)
+        return 1;
+
+    fc_layer_t *layer = network_add_fc_layer(network, params, 0);
     const spike_list_t *output_spikes;
 
     if (layer == 0)
         return 1;
-    
-    // Copy weights
+
+    // Copy weights                                                                                 
     fc_layer_set_weights(layer, weights);
 
-    // Inference                                                                                     
-    network_reset(&network);
-    output_spikes = network_infer(&network, input_spikes);
+    // Inference                                                                                    
+
+    network_reset(network);
+    output_spikes = network_infer(network, input_spikes, 2);
     if (output_spikes == 0)
         return 1;
 
-    // Print spikes                                                                                  
+    // Print spikes                                                                                 
     spike_list_print(output_spikes);
     
-    // Print spike count                                                                             
+    // Print spike count                                                                    
     for (unsigned int i = 0; i < layer->params.n_neurons; i++)
         printf("%d ", layer->n_spikes[i]);
     printf("\n");
 
-    // Free memory                                                                                   
+    // Free memory                                                                                  
     spike_list_destroy(input_spikes);
-    network_destroy(&network);
-    
+    network_destroy(network);
+
     return 0;
 }
-
 ```
 
 ## Coming Features
@@ -432,3 +474,8 @@ int main(void) {
 - Direct Feedback Alignement (DFA)
 - Convolutional Spiking Layers
 - Recurrence
+
+## References
+
+[1] J. Göltz, L. Kriener, A. Baumbach, S. Billaudelle, O. Breitwieser, B. Cramer, D. Dold, A. F. Kungl, W. Senn, J. Schemmel, K. Meier, & M. A. Petrovici (2021). Fast and energy-efficient neuromorphic deep learning with first-spike times. <em>Nature Machine Intelligence, 3(9), 823–835.</em> <br>
+[2] Bacho, F., & Chu, D.. (2022). Exact Error Backpropagation Through Spikes for Precise Training of Spiking Neural Networks. https://arxiv.org/abs/2212.09500 <br>
