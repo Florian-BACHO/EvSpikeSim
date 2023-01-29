@@ -1,14 +1,14 @@
 # EvSpikeSim (Experimental)
 
 ## Project Description
-EvSpikeSim is an experimental event-based Spiking Neural Networks (SNNs) simulator written in C for high performance and interfaced with Python for easy usage.
-This project aims to provide fast and accurate simulations of SNNs for the development of neuromorphic training algorithms.
+EvSpikeSim is an experimental event-based Spiking Neural Networks (SNNs) simulator written in C++ for high performance and interfaced with Python.
+This project aims to provide fast and accurate simulations of sparse SNNs for the development of neuromorphic training algorithms.
 
 ## Implemented Features
 
 - Fully-connected layers of Leaky Integrate-and-Fire (LIF) neurons
 - Simple Python3 interface compatible with numpy arrays
-- Theading support on CPU
+- Theading on CPU
 - GPU support
 
 ## Neuron Model
@@ -28,13 +28,26 @@ In this simulator, **membrane time constants are constrained to 2x the synaptic 
 
 ## Build and Install
 
-### Python3
+### C++ Library
+
+```console
+mkdir build
+cd build
+cmake ..
+make evspikesim
+```
+
+
+
+### Python3 API
 
 Requirements:
-- cmake (>= 3.14)
-- Python3 (>= 3.8)
-- Numpy (>=1.20)
-- Cuda (if install for GPU) (>=11.6)
+- cmake
+- Python3
+- Boost
+- Boost.Python
+- Numpy
+- Cuda (if install for GPU)
 
 The following command builds the EvSpikeSim Python3 package:
 ```console
@@ -358,7 +371,7 @@ network_t *network = network_new(0);
 unsigned int layer_idx = 1;
 fc_layer *layer;
 
-assert(layer_idx < network->n_layers);
+assert(layer_idx < network->get_n_layers);
 assert(network->layer_types[layer_idx] == FC); // Check layer type before cast
 
 layer = (fc_layer_t *)network->layers[layer_idx];
