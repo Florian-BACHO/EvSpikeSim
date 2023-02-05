@@ -33,7 +33,8 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       # Build your program with the given configuration
-      run: make tests -j
+      run: ls -l
+      #run: make tests -j
 
     - name: Test
       working-directory: ${{github.workspace}}/build/tests
