@@ -28,13 +28,12 @@ jobs:
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake ../core
+      run: ls -l
+      #run: cmake ../core
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      # Build your program with the given configuration
-      run: ls -l
-      #run: make tests -j
+      run: make tests -j
 
     - name: Test
       working-directory: ${{github.workspace}}/build/tests
