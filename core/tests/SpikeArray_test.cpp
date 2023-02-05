@@ -13,14 +13,14 @@ TEST(SpikeArrayTest, NSpikesAndEmpty) {
     SpikeArray arr;
 
     EXPECT_TRUE(arr.empty());
-    EXPECT_EQ(arr.n_spikes(), 0);
+    EXPECT_EQ(arr.n_spikes(), 0u);
 
     arr.add(21, 42.42);
     arr.add(12, 1.42);
     arr.add(12, 21.84);
 
     EXPECT_FALSE(arr.empty());
-    EXPECT_EQ(arr.n_spikes(), 3);
+    EXPECT_EQ(arr.n_spikes(), 3u);
 }
 
 TEST(SpikeArrayTest, AddAndIteration) {
@@ -140,12 +140,12 @@ TEST(SpikeArrayTest, Clear) {
 
 
     EXPECT_FALSE(arr.empty());
-    EXPECT_EQ(arr.n_spikes(), 3);
+    EXPECT_EQ(arr.n_spikes(), 3u);
 
     arr.clear();
 
     EXPECT_TRUE(arr.empty());
-    EXPECT_EQ(arr.n_spikes(), 0);
+    EXPECT_EQ(arr.n_spikes(), 0u);
 }
 
 TEST(SpikeArrayTest, Comparators) {

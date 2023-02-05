@@ -11,7 +11,7 @@ using namespace EvSpikeSim;
 TEST(SpikeTest, Values) {
     Spike spike(42, 21.42);
 
-    EXPECT_EQ(spike.index, 42);
+    EXPECT_EQ(spike.index, 42u);
     EXPECT_FLOAT_EQ(spike.time, 21.42);
 }
 

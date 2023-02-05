@@ -13,16 +13,16 @@ TEST(SpikingNetworkTest, AddLayer) {
     FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
     SpikingNetwork network = SpikingNetwork();
 
-    ASSERT_EQ(network.get_n_layers(), 0);
+    ASSERT_EQ(network.get_n_layers(), 0u);
 
     network.add_layer(desc);
 
-    ASSERT_EQ(network.get_n_layers(), 1);
+    ASSERT_EQ(network.get_n_layers(), 1u);
 
     network.add_layer(desc);
     network.add_layer(desc);
 
-    ASSERT_EQ(network.get_n_layers(), 3);
+    ASSERT_EQ(network.get_n_layers(), 3u);
 }
 
 TEST(SpikingNetworkTest, Inference) {

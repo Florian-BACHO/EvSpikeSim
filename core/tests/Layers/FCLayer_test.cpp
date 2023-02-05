@@ -32,9 +32,9 @@ TEST(LayerDescriptorTest, Construction) {
     const auto &weights_dims = layer->get_weights().get_dims();
 
     ASSERT_EQ(layer->get_descriptor(), desc);
-    ASSERT_EQ(weights_n_dims, 2);
-    ASSERT_EQ(weights_dims[0], 21);
-    ASSERT_EQ(weights_dims[1], 42);
+    ASSERT_EQ(weights_n_dims, 2u);
+    ASSERT_EQ(weights_dims[0], 21u);
+    ASSERT_EQ(weights_dims[1], 42u);
 }
 
 
@@ -47,9 +47,9 @@ TEST(LayerDescriptorTest, ConstructionFilled) {
     auto weights = layer->get_weights();
 
     ASSERT_EQ(layer->get_descriptor(), desc);
-    ASSERT_EQ(weights_n_dims, 2);
-    ASSERT_EQ(weights_dims[0], 21);
-    ASSERT_EQ(weights_dims[1], 42);
+    ASSERT_EQ(weights_n_dims, 2u);
+    ASSERT_EQ(weights_dims[0], 21u);
+    ASSERT_EQ(weights_dims[1], 42u);
     for (auto y = 0u; y < weights_dims[0]; y++)
         for (auto x = 0u; x < weights_dims[1]; x++)
             EXPECT_FLOAT_EQ(weights.get(y, x), 4.2);
@@ -64,9 +64,9 @@ TEST(LayerDescriptorTest, ConstructionInitConstant) {
     auto weights = layer->get_weights();
 
     ASSERT_EQ(layer->get_descriptor(), desc);
-    ASSERT_EQ(weights_n_dims, 2);
-    ASSERT_EQ(weights_dims[0], 21);
-    ASSERT_EQ(weights_dims[1], 42);
+    ASSERT_EQ(weights_n_dims, 2u);
+    ASSERT_EQ(weights_dims[0], 21u);
+    ASSERT_EQ(weights_dims[1], 42u);
     for (auto y = 0u; y < weights_dims[0]; y++)
         for (auto x = 0u; x < weights_dims[1]; x++)
             EXPECT_FLOAT_EQ(weights.get(y, x), 42.21);
@@ -82,9 +82,9 @@ TEST(LayerDescriptorTest, ConstructionInitIncremental) {
     const auto &weights = layer->get_weights();
 
     ASSERT_EQ(layer->get_descriptor(), desc);
-    ASSERT_EQ(weights_n_dims, 2);
-    ASSERT_EQ(weights_dims[0], 21);
-    ASSERT_EQ(weights_dims[1], 42);
+    ASSERT_EQ(weights_n_dims, 2u);
+    ASSERT_EQ(weights_dims[0], 21u);
+    ASSERT_EQ(weights_dims[1], 42u);
     float i = 0.0;
     for (auto y = 0u; y < weights_dims[0]; y++)
         for (auto x = 0u; x < weights_dims[1]; x++)
