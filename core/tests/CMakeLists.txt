@@ -1,10 +1,5 @@
 if(NOT DEFINED NO_TEST OR NOT NO_TEST)
     find_package(GTest REQUIRED)
-    find_library(GMOCK_LIBRARY NAMES libgmock.a)
-
-    if(GMOCK_LIBRARY-NOTFOUND)
-        message(FATAL_ERROR "gmock library not found")
-    endif()
 
     enable_testing()
     if (DEFINED BUILD_GPU)
@@ -27,5 +22,5 @@ if(NOT DEFINED NO_TEST OR NOT NO_TEST)
     if (DEFINED BUILD_GPU)
         set_source_files_properties(${TEST_SOURCE_FILES} PROPERTIES LANGUAGE CUDA)
     endif ()
-    target_link_libraries(tests evspikesim ${GTEST_BOTH_LIBRARIES} ${GMOCK_LIBRARY})
+    target_link_libraries(tests evspikesim ${GTEST_BOTH_LIBRARIES})
 endif()
