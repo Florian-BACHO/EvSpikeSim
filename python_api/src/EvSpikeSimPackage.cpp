@@ -83,11 +83,16 @@ static void create_main_module(py::module &m) {
     py::class_<SpikingNetwork>(m, "SpikingNetwork")
             .def(py::init<>())
             .def("add_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const FCLayerDescriptor &)>
-                 (&SpikingNetwork::add_layer), py::arg("descriptor"))
-            .def("infer", &SpikingNetwork::infer, py::arg("inputs"))
+            (&SpikingNetwork::add_layer), py::arg("descriptor"))
+            .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const SpikeArray &)>
+                 (&SpikingNetwork::infer), py::arg("inputs"))
+            .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const std::vector<unsigned int> &,
+                                                                            const std::vector<float> &)>
+                 (&SpikingNetwork::infer),
+                 py::arg("indices"), py::arg("times"))
             .def("__len__", &SpikingNetwork::get_n_layers)
             .def("__iter__", &get_obj_iterator<SpikingNetwork>, py::keep_alive<0, 1>())
-            .def("__getitem__", &SpikingNetwork::operator[]<unsigned int>)
+            .def("__getitem__", &SpikingNetwork::operator[] < unsigned int > )
             .def_property_readonly("output_layer", &SpikingNetwork::get_output_layer);
 }
 
