@@ -1,24 +1,46 @@
-import numpy as	np
 import evspikesim as sim
+import numpy as np
 
-# Network definition                                                                                
-network = sim.Network()
-network.add_fc_layer(2, 3, 0.020, 0.020 * 0.1)
-network[0].weights = np.array([[1.0, 2.0],
-                               [-0.1, 0.8],
-                               [0.5, 0.4]], dtype=np.float32)
 
-# Input spikes                                                                                      
-input_spike_indices = np.array([0, 1], dtype=np.uint32)
-input_spike_times = np.array([0.013, 0.009], dtype=np.float32)
+def main():
+    # Create network
+    network = sim.SpikingNetwork()
 
-network.reset()
-network.infer(input_spike_indices, input_spike_times)
+    # Layer parameters
+    n_inputs = 2
+    n_neurons = 3
+    tau_s = 0.020
+    threshold = tau_s * 0.2
 
-# Get output spikes and counts                                                                      
-output_spike_indices, output_spike_times = network.output_layer.spikes
-output_spike_counts = network.output_layer.spike_counts
+    # Add fully-connected layer to the network
+    desc = sim.layers.FCLayerDescriptor(n_inputs, n_neurons, tau_s, threshold)
+    layer = network.add_layer(desc)
 
-print(output_spike_indices)
-print(output_spike_times)
-print(output_spike_counts)
+    # Set weights
+    layer.weights = np.array([[1.0, 0.3],
+                              [-0.1, 0.8],
+                              [0.5, 0.4]], dtype=np.float32)
+
+    # Mutate weight
+    layer.weights[0, 1] -= 0.1
+
+    # Create input spikes
+    input_indices = np.array([0, 1, 1], dtype=np.int32)
+    input_times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
+    input_spikes = sim.SpikeArray(input_indices, input_times)
+    input_spikes.sort()
+
+    # Inference
+    output_spikes = network.infer(input_spikes)
+
+    print("Input spikes:")
+    print(input_spikes)
+
+    print("Output spikes:")
+    print(output_spikes)
+
+    print("Output spike counts:")
+    print(layer.n_spikes)
+
+if __name__ == "__main__":
+    main()
