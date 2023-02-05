@@ -60,6 +60,22 @@ TEST(SpikingNetworkTest, InferenceSpikeArray) {
     ASSERT_EQ(post_spikes, true_outputs);
 }
 
+TEST(SpikingNetworkTest, InferenceSpikeArrayUnsortedThrow) {
+    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
+    SpikingNetwork network = SpikingNetwork();
+    auto layer = network.add_layer(desc);
+
+    SpikeArray input_spikes = SpikeArray();
+
+    input_spikes.add(0, 1.0);
+    input_spikes.add(1, 1.5);
+    input_spikes.add(1, 1.2);
+
+    EXPECT_THROW({
+        network.infer(input_spikes);
+    }, std::runtime_error);
+}
+
 TEST(SpikingNetworkTest, InferenceVectors) {
     FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
     SpikingNetwork network = SpikingNetwork();

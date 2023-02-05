@@ -96,6 +96,21 @@ class TestSpikingNetwork(unittest.TestCase):
         output_spikes = net.infer(inputs)
         self.assertEqual(output_spikes, targets)
 
+    def test_infer_spike_array_unsorted_exception(self):
+        weights = np.array([[1.0, 0.2],
+                            [-0.1, 0.8],
+                            [0.5, 0.4]], dtype=np.float32)
+
+        indices = np.array([0, 1, 1], dtype=np.uint32)
+        times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
+        inputs = sim.SpikeArray(indices, times)
+
+        net = sim.SpikingNetwork()
+        layer = net.add_layer(FCLayerDescriptor(2, 3, 0.020, 0.020 * 0.2))
+        layer.weights = weights
+
+        self.assertRaises(RuntimeError, net.infer, inputs)
+
 
     def test_infer_no_spike_array(self):
         weights = np.array([[1.0, 0.2],
