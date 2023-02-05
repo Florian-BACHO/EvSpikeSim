@@ -9,7 +9,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  python_api_tests:
+  python_api_cpu_tests:
 
     runs-on: ubuntu-latest
     strategy:
