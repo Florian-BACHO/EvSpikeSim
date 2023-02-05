@@ -39,7 +39,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        python setup install
+        python setup.py install
         
     - name: Run Tests
       working-directory: ${{github.workspace}}/python_api/tests
