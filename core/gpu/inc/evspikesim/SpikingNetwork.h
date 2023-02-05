@@ -27,16 +27,25 @@ namespace EvSpikeSim {
 
         const SpikeArray &infer(const SpikeArray &pre_spikes);
 
+        template <class IndicesType, class TimesType>
+        const SpikeArray &infer(const IndicesType &indices, const TimesType &times) {
+            SpikeArray input_spikes(indices, times);
+
+            input_spikes.sort();
+            return infer(input_spikes);
+        }
+
         // Iterator
-        inline iterator begin() { return layers.begin(); };
-        inline iterator end() { return layers.end(); };
+        iterator begin();
+        iterator end();
 
         // Accessor
         template <typename T>
-        inline std::shared_ptr<Layer> operator[](T idx) { return layers[idx]; }
-        inline std::shared_ptr<Layer> get_output_layer() { return layers.back(); }
+        std::shared_ptr<Layer> operator[](T idx) { return layers[idx]; }
 
-        inline auto get_n_layers() const { return layers.size(); }
+        std::shared_ptr<Layer> get_output_layer();
+
+        unsigned int get_n_layers() const;
 
     private:
         std::vector<std::shared_ptr<Layer>> layers;
