@@ -48,6 +48,14 @@ static void layer_set_weights(Layer &layer, const py::buffer &new_weights) {
     std::copy(new_weights_ptr, new_weights_ptr + weights.size(), weights.c_ptr());
 }
 
+static auto layer_get_n_spikes(Layer &layer) {
+    auto &n_spikes = layer.get_n_spikes();
+    std::vector<py::ssize_t> shape = {(py::ssize_t)n_spikes.size()};
+    std::vector<py::ssize_t> stride = {sizeof(float)};
+
+    return py::array_t<unsigned int>(shape, stride, n_spikes.data(), py::cast(layer));
+}
+
 py::module create_layers_module(py::module &parent_module) {
     py::module layer_module = parent_module.def_submodule("layers", "Layers and descriptors");
 
@@ -70,8 +78,7 @@ py::module create_layers_module(py::module &parent_module) {
             .def_property("weights", &layer_get_weights, &layer_set_weights)
             .def_property_readonly("post_spikes", py::cpp_function(&Layer::get_post_spikes,
                                                                    py::return_value_policy::reference_internal))
-            .def_property_readonly("n_spikes", py::cpp_function(&Layer::get_n_spikes,
-                                                                py::return_value_policy::reference_internal));
+            .def_property_readonly("n_spikes", &layer_get_n_spikes);
 
     py::class_<FCLayer, Layer, std::shared_ptr<FCLayer>>(layer_module, "FCLayer");
 

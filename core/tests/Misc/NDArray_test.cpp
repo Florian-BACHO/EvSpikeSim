@@ -27,10 +27,10 @@ TEST(NDArrayTest, Dimensions) {
     NDArray<float> mat({21, 42});
     auto dims = mat.get_dims();
 
-    EXPECT_EQ(mat.get_n_dims(), 2);
-    EXPECT_EQ(dims[0], 21);
-    EXPECT_EQ(dims[1], 42);
-    EXPECT_EQ(mat.size(), 21 * 42);
+    EXPECT_EQ(mat.get_n_dims(), 2u);
+    EXPECT_EQ(dims[0], 21u);
+    EXPECT_EQ(dims[1], 42u);
+    EXPECT_EQ(mat.size(), 21u * 42u);
 }
 
 
@@ -38,8 +38,8 @@ TEST(NDArrayTest, FillConstructor) {
     NDArray<float> mat({21, 42}, 84.42);
     auto dims = mat.get_dims();
 
-    EXPECT_EQ(dims[0], 21);
-    EXPECT_EQ(dims[1], 42);
+    EXPECT_EQ(dims[0], 21u);
+    EXPECT_EQ(dims[1], 42u);
     for (auto y = 0u; y < dims[0]; y++)
         for (auto x = 0u; x < dims[1]; x++)
             EXPECT_FLOAT_EQ(mat.get(y, x), 84.42);
@@ -49,8 +49,8 @@ TEST(NDArrayTest, InitConstructorConstant) {
     NDArray<float> mat({21, 42}, constantInitFct);
     auto dims = mat.get_dims();
 
-    EXPECT_EQ(dims[0], 21);
-    EXPECT_EQ(dims[1], 42);
+    EXPECT_EQ(dims[0], 21u);
+    EXPECT_EQ(dims[1], 42u);
     for (auto y = 0u; y < dims[0]; y++)
         for (auto x = 0u; x < dims[1]; x++)
             EXPECT_FLOAT_EQ(mat.get(y, x), 42.21f);
@@ -60,8 +60,8 @@ TEST(NDArrayTest, InitConstructorIncremental) {
     NDArray<float> mat({21, 42}, IncrementalInitFct());
     auto dims = mat.get_dims();
 
-    EXPECT_EQ(dims[0], 21);
-    EXPECT_EQ(dims[1], 42);
+    EXPECT_EQ(dims[0], 21u);
+    EXPECT_EQ(dims[1], 42u);
     float i = 0.0;
     for (auto y = 0u; y < dims[0]; y++)
         for (auto x = 0u; x < dims[1]; x++)
@@ -73,8 +73,8 @@ TEST(NDArrayTest, SetValue) {
     auto dims = mat.get_dims();
 
     mat.set(42.21, 2, 3);
-    EXPECT_EQ(dims[0], 21);
-    EXPECT_EQ(dims[1], 42);
+    EXPECT_EQ(dims[0], 21u);
+    EXPECT_EQ(dims[1], 42u);
     for (auto y = 0u; y < dims[0]; y++)
         for (auto x = 0u; x < dims[1]; x++)
             EXPECT_FLOAT_EQ(mat.get(y, x), (y == 2 && x == 3) ? 42.21 : 0.0);
@@ -85,9 +85,9 @@ TEST(NDArrayTest, CPtr) {
     float *ptr = tensor.c_ptr();
     auto dims = tensor.get_dims();
 
-    EXPECT_EQ(dims[0], 21);
-    EXPECT_EQ(dims[1], 42);
-    EXPECT_EQ(dims[2], 84);
+    EXPECT_EQ(dims[0], 21u);
+    EXPECT_EQ(dims[1], 42u);
+    EXPECT_EQ(dims[2], 84u);
 
     ptr[(2 * dims[1] + 12) * dims[2] + 3] = 42.21;
     for (auto z = 0u; z < dims[0]; z++)
@@ -99,5 +99,5 @@ TEST(NDArrayTest, CPtr) {
 TEST(NDArrayTest, Size) {
     NDArray<float> tensor({21, 42, 84});
 
-    EXPECT_EQ(tensor.size(), 74088);
+    EXPECT_EQ(tensor.size(), 74088u);
 }

@@ -79,5 +79,8 @@ class TestFCLayer(unittest.TestCase):
         output_spikes = layer.post_spikes
         output_n_spikes = layer.n_spikes
 
+        self.assertTrue(isinstance(output_spikes, sim.SpikeArray))
         self.assertEqual(output_spikes, targets)
+
+        self.assertTrue(isinstance(output_n_spikes, np.ndarray))
         self.assertTrue((output_n_spikes == targets_n_spikes).all())

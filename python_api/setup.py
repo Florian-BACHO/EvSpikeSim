@@ -92,7 +92,6 @@ def setup_gpu(version):
     global CUDA
     CUDA = locate_cuda()
 
-    print(CUDA)
     ext = Extension('evspikesim',
                     sources=SOURCES,
                     library_dirs=["../build/lib/", CUDA['lib64']],
