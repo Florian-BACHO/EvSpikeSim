@@ -1,7 +1,7 @@
 name: Python API
     
 on:
-  push:
+  pull_request:
     branches:
     - '*'
 
