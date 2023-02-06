@@ -51,7 +51,7 @@ TEST(UniformInitializerTest, LayerInitialization) {
     auto layer = network.add_layer(desc, init);
 
     for (auto i = 0; i < 100; i++) {
-        value = layer->get_weights().c_ptr()[i];
+        value = layer->get_weights().get_values()[i];
         EXPECT_NE(value, last_value);
         last_value = value;
     }

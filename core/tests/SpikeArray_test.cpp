@@ -12,14 +12,14 @@ using namespace EvSpikeSim;
 TEST(SpikeArrayTest, NSpikesAndEmpty) {
     SpikeArray arr;
 
-    EXPECT_TRUE(arr.empty());
+    EXPECT_TRUE(arr.is_empty());
     EXPECT_EQ(arr.n_spikes(), 0u);
 
     arr.add(21, 42.42);
     arr.add(12, 1.42);
     arr.add(12, 21.84);
 
-    EXPECT_FALSE(arr.empty());
+    EXPECT_FALSE(arr.is_empty());
     EXPECT_EQ(arr.n_spikes(), 3u);
 }
 
@@ -139,12 +139,12 @@ TEST(SpikeArrayTest, Clear) {
     arr.add(12, 21.84);
 
 
-    EXPECT_FALSE(arr.empty());
+    EXPECT_FALSE(arr.is_empty());
     EXPECT_EQ(arr.n_spikes(), 3u);
 
     arr.clear();
 
-    EXPECT_TRUE(arr.empty());
+    EXPECT_TRUE(arr.is_empty());
     EXPECT_EQ(arr.n_spikes(), 0u);
 }
 

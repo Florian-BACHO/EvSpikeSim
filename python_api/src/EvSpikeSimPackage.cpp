@@ -74,7 +74,7 @@ static void create_main_module(py::module &m) {
                                                          const std::vector<float> &)>(&SpikeArray::add),
                  py::arg("indices"), py::arg("times"))
             .def("sort", &SpikeArray::sort)
-            .def("empty", &SpikeArray::empty)
+            .def("empty", &SpikeArray::is_empty)
             .def("clear", &SpikeArray::clear)
             .def("__len__", &SpikeArray::n_spikes)
             .def("__iter__", &get_obj_iterator<SpikeArray>, py::keep_alive<0, 1>())

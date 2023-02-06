@@ -99,7 +99,7 @@ const SpikeArray &FCLayer::infer(const SpikeArray &pre_spikes) {
     unsigned int n_neurons_per_thread = std::max(desc.n_neurons / thread_pool->get_thread_count(), 1u);
     std::vector<std::future<void>> tasks;
 
-    if (pre_spikes.empty())
+    if (pre_spikes.is_empty())
         return post_spikes;
 
     reset();

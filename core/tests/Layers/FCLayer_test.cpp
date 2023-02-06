@@ -75,7 +75,7 @@ TEST(LayerDescriptorTest, Inference) {
     SpikingNetwork network = SpikingNetwork();
     auto layer = network.add_layer(desc);
     SpikeArray input_spikes = SpikeArray();
-    float weights[] = {1.0, 0.2,
+    std::vector<float> weights = {1.0, 0.2,
                        -0.1, 0.8,
                        0.5, 0.4};
     std::vector<unsigned int> true_n_spikes = {3, 4, 3};
@@ -93,7 +93,7 @@ TEST(LayerDescriptorTest, Inference) {
     true_outputs.add(2, 1.5267321);
     true_outputs.sort();
 
-    std::copy(weights, weights + 6, layer->get_weights().c_ptr());
+    layer->get_weights() = weights;
 
     input_spikes.add(0, 1.0);
     input_spikes.add(1, 1.5);

@@ -162,7 +162,7 @@ int main() {
     std::vector<float> weights = {1.0, 0.3,
                                   -0.1, 0.8,
                                   0.5, 0.4};
-    std::copy(weights.data(), weights.data() + weights.size(), layer->get_weights().c_ptr());
+    layer->get_weights() = weights;
 
     // Mutate weight
     layer->get_weights().get(0, 1) -= 0.1;
