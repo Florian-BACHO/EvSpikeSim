@@ -15,7 +15,7 @@ if __name__ == "__main__":
                               [-0.1, 0.8],
                               [0.5, 0.4]], dtype=np.float32)
 
-    # Mutate weight
+    # Mutate synapse 1 of neuron 0 
     layer.weights[0, 1] -= 0.1
 
     # Create input spikes
