@@ -67,7 +67,7 @@ TEST(NDArrayTest, SetValue) {
 
 TEST(NDArrayTest, CPtr) {
     NDArray<float> tensor({21, 42, 84}, 0.0);
-    float *ptr = tensor.c_ptr();
+    float *ptr = tensor.get_c_ptr();
     auto dims = tensor.get_dims();
 
     EXPECT_EQ(dims[0], 21u);
@@ -85,4 +85,34 @@ TEST(NDArrayTest, Size) {
     NDArray<float> tensor({21, 42, 84});
 
     EXPECT_EQ(tensor.size(), 74088u);
+}
+
+TEST(NDArrayTest, SetGetValues) {
+    NDArray<float> tensor({2, 3});
+    std::vector<float> new_values = {0, 1,
+                                     2, 3,
+                                     4, 5};
+
+    tensor.set_values(new_values);
+    EXPECT_EQ(tensor.get_values(), new_values);
+}
+
+TEST(NDArrayTest, SetGetValuesIterator) {
+    NDArray<float> tensor({2, 3});
+    std::vector<float> new_values = {0, 1,
+                                     2, 3,
+                                     4, 5};
+
+    tensor.set_values(new_values.begin(), new_values.end());
+    EXPECT_EQ(tensor.get_values(), new_values);
+}
+
+TEST(NDArrayTest, AssignOperator) {
+    NDArray<float> tensor({2, 3});
+    std::vector<float> new_values = {0, 1,
+                                     2, 3,
+                                     4, 5};
+
+    tensor = new_values;
+    EXPECT_EQ(tensor.get_values(), new_values);
 }

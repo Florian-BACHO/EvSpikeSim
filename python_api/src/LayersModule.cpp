@@ -37,7 +37,7 @@ static auto layer_get_weights(Layer &layer) {
     auto shape = convert_dim(weights.get_dims());
     auto stride = get_strides(weights.get_dims());
 
-    return py::array_t<float>(shape, stride, weights.c_ptr(), py::cast(layer));
+    return py::array_t<float>(shape, stride, weights.get_c_ptr(), py::cast(layer));
 }
 
 static void layer_set_weights(Layer &layer, const py::buffer &new_weights) {
@@ -45,7 +45,7 @@ static void layer_set_weights(Layer &layer, const py::buffer &new_weights) {
     const auto *new_weights_ptr = static_cast<float *>(info.ptr);
     auto &weights = layer.get_weights();
 
-    std::copy(new_weights_ptr, new_weights_ptr + weights.size(), weights.c_ptr());
+    weights.set_values(new_weights_ptr, new_weights_ptr + weights.size());
 }
 
 static auto layer_get_n_spikes(Layer &layer) {

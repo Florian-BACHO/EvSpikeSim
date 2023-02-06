@@ -51,6 +51,7 @@ namespace EvSpikeSim {
     template<typename... Args>
     Layer::Layer(const LayerDescriptor &desc, std::shared_ptr<ThreadPool> &thread_pool,
                  const std::initializer_list<unsigned int> &weights_dims, Args... args) :
-            desc(desc), post_spikes(), thread_pool(thread_pool), n_spikes(desc.n_neurons), weights(weights_dims, args...),
+            desc(desc), post_spikes(), thread_pool(thread_pool), n_spikes(desc.n_neurons),
+            weights(weights_dims, args...),
             a(desc.n_neurons), b(desc.n_neurons), buffer(desc.n_neurons * buffer_size) {}
 }

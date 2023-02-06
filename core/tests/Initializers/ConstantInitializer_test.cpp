@@ -32,5 +32,5 @@ TEST(ConstantInitializerTest, LayerInitialization) {
     auto layer = network.add_layer(desc, init);
 
     for (auto i = 0; i < 100; i++)
-        EXPECT_EQ(layer->get_weights().c_ptr()[i], 42.21f);
+        EXPECT_EQ(layer->get_weights().get_values()[i], 42.21f);
 }

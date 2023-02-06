@@ -50,9 +50,9 @@ namespace EvSpikeSim {
 
         bool is_sorted() const;
 
-        bool empty() const;
+        bool is_empty() const;
 
-        const Spike *c_ptr() const;
+        const Spike *get_c_ptr() const;
 
         bool operator==(const SpikeArray &rhs) const;
 

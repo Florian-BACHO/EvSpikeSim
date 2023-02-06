@@ -31,7 +31,7 @@ TEST(SpikingNetworkTest, InferenceSpikeArray) {
     auto layer = network.add_layer(desc);
 
     SpikeArray input_spikes = SpikeArray();
-    float weights[] = {1.0, 0.2,
+    std::vector<float> weights = {1.0, 0.2,
                        -0.1, 0.8,
                        0.5, 0.4};
 
@@ -48,7 +48,7 @@ TEST(SpikingNetworkTest, InferenceSpikeArray) {
     true_outputs.add(2, 1.5267321);
     true_outputs.sort();
 
-    std::copy(weights, weights + 6, layer->get_weights().c_ptr());
+    layer->get_weights() = weights;
 
     input_spikes.add(0, 1.0);
     input_spikes.add(1, 1.5);
@@ -83,7 +83,7 @@ TEST(SpikingNetworkTest, InferenceVectors) {
     std::vector<unsigned int> input_indices = {0, 1, 1};
     std::vector<float> input_times = {1.0, 1.5, 1.2};
 
-    float weights[] = {1.0, 0.2,
+    std::vector<float> weights = {1.0, 0.2,
                        -0.1, 0.8,
                        0.5, 0.4};
 
@@ -100,7 +100,7 @@ TEST(SpikingNetworkTest, InferenceVectors) {
     true_outputs.add(2, 1.5267321);
     true_outputs.sort();
 
-    std::copy(weights, weights + 6, layer->get_weights().c_ptr());
+    layer->get_weights() = weights;
 
     const auto &post_spikes = network.infer(input_indices, input_times);
 
@@ -113,7 +113,7 @@ TEST(SpikingNetworkTest, ResetInference) {
     auto layer = network.add_layer(desc);
 
     SpikeArray input_spikes = SpikeArray();
-    float weights[] = {1.0, 0.2,
+    std::vector<float> weights = {1.0, 0.2,
                        -0.1, 0.8,
                        0.5, 0.4};
 
@@ -130,7 +130,7 @@ TEST(SpikingNetworkTest, ResetInference) {
     true_outputs.add(2, 1.5267321);
     true_outputs.sort();
 
-    std::copy(weights, weights + 6, layer->get_weights().c_ptr());
+    layer->get_weights() = weights;
 
     input_spikes.add(0, 1.0);
     input_spikes.add(1, 1.5);

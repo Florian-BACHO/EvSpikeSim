@@ -109,11 +109,11 @@ __global__ void infer_kernel(KernelData kernel_data) {
 
 const SpikeArray &FCLayer::infer(const SpikeArray &pre_spikes) {
     KernelData kernel_data = {
-            pre_spikes.c_ptr(),
+            pre_spikes.get_c_ptr(),
             pre_spikes.n_spikes(),
             *static_cast<const FCLayerDescriptor *>(&desc),
             n_spikes.data(),
-            weights.c_ptr(),
+            weights.get_c_ptr(),
             a.data(),
             b.data(),
             buffer.data(),

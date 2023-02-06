@@ -40,35 +40,55 @@ namespace EvSpikeSim {
                 it = (*fct)();
         }
 
-        inline unsigned int get_n_dims() const {
+        unsigned int get_n_dims() const {
             return dims.size();
         }
 
-        inline std::vector<unsigned int> get_dims() const {
+        std::vector<unsigned int> get_dims() const {
             return dims;
         }
 
-        inline std::size_t size() const {
+        std::size_t size() const {
             return values.size();
         }
 
         template<typename U, typename... Args>
-        inline T &get(U first_idx, Args... indices) {
+        T &get(U first_idx, Args... indices) {
+            return values[get_index(dims.begin(), U(0), first_idx, indices...)];
+        }
+
+        std::vector<T, Allocator> &get_values() {
+            return values;
+        }
+
+        template <class IteratorType>
+        void set_values(const IteratorType &begin, const IteratorType &end) {
+            values.assign(begin, end);
+        }
+
+        template <class ContainerType>
+        void set_values(const ContainerType &other) {
+            set_values(other.begin(), other.end());
+        }
+
+        template<typename U, typename... Args>
+        const T &get(U first_idx, Args... indices) const {
             return values[get_index(dims.begin(), U(0), first_idx, indices...)];
         }
 
         template<typename U, typename... Args>
-        inline const T &get(U first_idx, Args... indices) const {
-            return values[get_index(dims.begin(), U(0), first_idx, indices...)];
-        }
-
-        template<typename U, typename... Args>
-        inline void set(T value, U first_idx, Args... indices) {
+        void set(T value, U first_idx, Args... indices) {
             values[get_index(dims.begin(), U(0), first_idx, indices...)] = value;
         }
 
-        inline T *c_ptr() {
+        T *get_c_ptr() {
             return values.data();
+        }
+
+        template <class ContainerType>
+        NDArray<T, Allocator> &operator=(const ContainerType &other) {
+            set_values(other);
+            return *this;
         }
 
     private:

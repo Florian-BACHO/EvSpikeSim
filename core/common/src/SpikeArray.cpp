@@ -50,11 +50,11 @@ bool SpikeArray::is_sorted() const {
     return sorted;
 }
 
-bool SpikeArray::empty() const {
+bool SpikeArray::is_empty() const {
     return n_spikes() == 0;
 }
 
-const Spike *SpikeArray::c_ptr() const {
+const Spike *SpikeArray::get_c_ptr() const {
     return spikes.data();
 }
 
