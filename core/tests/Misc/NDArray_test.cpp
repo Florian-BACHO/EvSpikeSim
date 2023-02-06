@@ -9,19 +9,15 @@
 using namespace EvSpikeSim;
 
 // Mock Initialization Functions
-class IncrementalInitFct {
+class IncrementalInitFct : public Initializer {
 public:
     IncrementalInitFct() : counter(0.0) {}
 
-    inline float operator()() { return counter++; }
+    float operator()() override { return counter++; }
 
 private:
     float counter;
 };
-
-static float constantInitFct() {
-    return 42.21;
-}
 
 TEST(NDArrayTest, Dimensions) {
     NDArray<float> mat({21, 42});
@@ -43,17 +39,6 @@ TEST(NDArrayTest, FillConstructor) {
     for (auto y = 0u; y < dims[0]; y++)
         for (auto x = 0u; x < dims[1]; x++)
             EXPECT_FLOAT_EQ(mat.get(y, x), 84.42);
-}
-
-TEST(NDArrayTest, InitConstructorConstant) {
-    NDArray<float> mat({21, 42}, constantInitFct);
-    auto dims = mat.get_dims();
-
-    EXPECT_EQ(dims[0], 21u);
-    EXPECT_EQ(dims[1], 42u);
-    for (auto y = 0u; y < dims[0]; y++)
-        for (auto x = 0u; x < dims[1]; x++)
-            EXPECT_FLOAT_EQ(mat.get(y, x), 42.21f);
 }
 
 TEST(NDArrayTest, InitConstructorIncremental) {
