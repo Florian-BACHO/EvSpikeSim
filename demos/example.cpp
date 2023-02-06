@@ -27,7 +27,7 @@ int main() {
                                   0.5, 0.4};
     layer->get_weights() = weights;
 
-    // Mutate weight
+    // Mutate synapse 1 of neuron 0 
     layer->get_weights().get(0, 1) -= 0.1;
 
     // Create input spikes
