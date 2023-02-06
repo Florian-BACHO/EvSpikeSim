@@ -9,7 +9,10 @@
 #include <evspikesim/Spike.h>
 #include <evspikesim/SpikeArray.h>
 #include <evspikesim/SpikingNetwork.h>
+#include <evspikesim/Initializers/Initializer.h>
 #include "LayersModule.h"
+#include "InitializersModule.h"
+#include "RandomModule.h"
 
 namespace py = pybind11;
 using namespace EvSpikeSim;
@@ -60,7 +63,7 @@ static void create_main_module(py::module &m) {
             .def("__repr__", &obj_to_str<Spike>);
 
     py::class_<SpikeArray>(m, "SpikeArray")
-            .def(py::init<>())
+            .def(py::init())
             .def(py::init<const std::vector<unsigned int> &, const std::vector<float> &>(),
                  py::arg("indices"), py::arg("times"))
             .def(py::init(&spike_array_buffer_init),
@@ -81,11 +84,14 @@ static void create_main_module(py::module &m) {
             .def_property_readonly("n_spikes", &SpikeArray::n_spikes);
 
     py::class_<SpikingNetwork>(m, "SpikingNetwork")
-            .def(py::init<>())
+            .def(py::init())
             .def("add_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const FCLayerDescriptor &)>
             (&SpikingNetwork::add_layer), py::arg("descriptor"))
+            .def("add_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const FCLayerDescriptor &,
+                                                                                       std::shared_ptr<Initializer> &)>
+            (&SpikingNetwork::add_layer), py::arg("descriptor"), py::arg("initializer"))
             .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const SpikeArray &)>
-                 (&SpikingNetwork::infer), py::arg("inputs"))
+            (&SpikingNetwork::infer), py::arg("inputs"))
             .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const std::vector<unsigned int> &,
                                                                             const std::vector<float> &)>
                  (&SpikingNetwork::infer),
@@ -99,4 +105,6 @@ static void create_main_module(py::module &m) {
 PYBIND11_MODULE(evspikesim, m) {
     create_main_module(m);
     create_layers_module(m);
+    create_initializers_module(m);
+    create_random_module(m);
 }

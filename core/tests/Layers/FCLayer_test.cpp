@@ -10,19 +10,15 @@
 using namespace EvSpikeSim;
 
 // Mock Initialization Functions
-class IncrementalInitFct {
+class IncrementalInitFct : public Initializer {
 public:
     IncrementalInitFct() : counter(0.0) {}
 
-    inline float operator()() { return counter++; }
+    inline float operator()() override { return counter++; }
 
 private:
     float counter;
 };
-
-static float constantInitFct() {
-    return 42.21;
-}
 
 TEST(LayerDescriptorTest, Construction) {
     FCLayerDescriptor desc(42, 21, 0.1, 1.0);
@@ -53,23 +49,6 @@ TEST(LayerDescriptorTest, ConstructionFilled) {
     for (auto y = 0u; y < weights_dims[0]; y++)
         for (auto x = 0u; x < weights_dims[1]; x++)
             EXPECT_FLOAT_EQ(weights.get(y, x), 4.2);
-}
-
-TEST(LayerDescriptorTest, ConstructionInitConstant) {
-    FCLayerDescriptor desc(42, 21, 0.1, 1.0);
-    SpikingNetwork network = SpikingNetwork();
-    auto layer = network.add_layer(desc, constantInitFct);
-    auto weights_n_dims = layer->get_weights().get_n_dims();
-    const auto &weights_dims = layer->get_weights().get_dims();
-    auto weights = layer->get_weights();
-
-    ASSERT_EQ(layer->get_descriptor(), desc);
-    ASSERT_EQ(weights_n_dims, 2u);
-    ASSERT_EQ(weights_dims[0], 21u);
-    ASSERT_EQ(weights_dims[1], 42u);
-    for (auto y = 0u; y < weights_dims[0]; y++)
-        for (auto x = 0u; x < weights_dims[1]; x++)
-            EXPECT_FLOAT_EQ(weights.get(y, x), 42.21);
 }
 
 TEST(LayerDescriptorTest, ConstructionInitIncremental) {

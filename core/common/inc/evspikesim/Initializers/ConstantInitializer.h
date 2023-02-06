@@ -9,7 +9,7 @@
 namespace EvSpikeSim {
     class ConstantInitializer : public Initializer {
     public:
-        ConstantInitializer(float value = 0.0f) : value(value) {}
+        explicit ConstantInitializer(float value = 0.0f) : value(value) {}
 
         inline float operator()() override { return value; }
 

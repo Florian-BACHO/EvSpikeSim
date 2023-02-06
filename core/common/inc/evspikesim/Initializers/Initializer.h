@@ -4,7 +4,11 @@
 
 #pragma once
 
-class Initializer {
-public:
-    virtual float operator()() = 0;
-};
+namespace EvSpikeSim {
+    class Initializer {
+    public:
+        virtual ~Initializer() = default;
+
+        virtual float operator()() = 0;
+    };
+}
