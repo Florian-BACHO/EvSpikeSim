@@ -15,24 +15,24 @@ namespace EvSpikeSim {
         using const_iterator = std::vector<Spike>::const_iterator;
 
     public:
-        SpikeArray() = default;
+        SpikeArray();
 
         SpikeArray(const std::vector<unsigned int> &indices, const std::vector<float> &times);
 
         template<class IndexIterator, class TimeIterator>
-        SpikeArray(IndexIterator begin_indices, IndexIterator end_indices, TimeIterator begin_times) {
+        SpikeArray(IndexIterator begin_indices, IndexIterator end_indices, TimeIterator begin_times) :
+                spikes(), sorted(true) {
             add(begin_indices, end_indices, begin_times);
         }
 
         void add(unsigned int index, float time);
+
         void add(const std::vector<unsigned int> &indices, const std::vector<float> &times);
 
         template<class IndexIterator, class TimeIterator>
         void add(IndexIterator begin_indices, IndexIterator end_indices, TimeIterator begin_times) {
             while (begin_indices != end_indices) {
-                if (is_max_capacity())
-                    extend_capacity();
-                spikes.emplace_back(*begin_indices, *begin_times);
+                add(*begin_indices, *begin_times);
                 begin_indices++;
                 begin_times++;
             }
@@ -42,15 +42,17 @@ namespace EvSpikeSim {
 
         void clear();
 
-        inline const_iterator begin() const { return spikes.begin(); };
+        const_iterator begin() const;
 
-        inline const_iterator end() const { return spikes.end(); };
+        const_iterator end() const;
 
-        inline std::size_t n_spikes() const { return spikes.size(); }
+        std::size_t n_spikes() const;
 
-        inline bool empty() const { return n_spikes() == 0; }
+        bool is_sorted() const;
 
-        inline const Spike *c_ptr() const { return spikes.data(); }
+        bool is_empty() const;
+
+        const Spike *get_c_ptr() const;
 
         bool operator==(const SpikeArray &rhs) const;
 
@@ -60,11 +62,12 @@ namespace EvSpikeSim {
         static constexpr size_t block_size = 1024;
 
         std::vector<Spike> spikes;
+        bool sorted;
 
     private:
-        inline bool is_max_capacity() const { return spikes.size() == spikes.capacity(); }
+        inline bool is_max_capacity() const;
 
-        inline void extend_capacity() { spikes.reserve(spikes.capacity() + block_size); }
+        inline void extend_capacity();
     };
 
     // IOStreams

@@ -139,8 +139,8 @@ Compilation requires c++17.
 
 Here is a C++ example of a (very) small fully-connected SNN in EvSpikeSim:
 ```cpp
-#include <evspikesim/Layers/FCLayer.h>
 #include <evspikesim/SpikingNetwork.h>
+#include <evspikesim/Layers/FCLayer.h>
 
 namespace sim = EvSpikeSim;
 
@@ -162,22 +162,17 @@ int main() {
     std::vector<float> weights = {1.0, 0.3,
                                   -0.1, 0.8,
                                   0.5, 0.4};
-    std::copy(weights.data(), weights.data() + weights.size(), layer->get_weights().c_ptr());
+    layer->get_weights() = weights;
 
-    // Mutate weight
+    // Mutate synapse 1 of neuron 0 
     layer->get_weights().get(0, 1) -= 0.1;
 
     // Create input spikes
     std::vector<unsigned int> input_indices = {0, 1, 1};
     std::vector<float> input_times = {1.0, 1.5, 1.2};
-    auto input_spikes = sim::SpikeArray(input_indices, input_times);
-    input_spikes.sort();
 
     // Inference
-    auto output_spikes = network.infer(input_spikes);
-
-    std::cout << "Input spikes:" << std::endl;
-    std::cout << input_spikes << std::endl;
+    auto output_spikes = network.infer(input_indices, input_times);
 
     std::cout << "Output spikes:" << std::endl;
     std::cout << output_spikes << std::endl;
@@ -199,48 +194,34 @@ import evspikesim as sim
 import numpy as np
 
 
-def main():
+if __name__ == "__main__":
     # Create network
     network = sim.SpikingNetwork()
 
-    # Layer parameters
-    n_inputs = 2
-    n_neurons = 3
-    tau_s = 0.020
-    threshold = tau_s * 0.2
-
     # Add fully-connected layer to the network
-    desc = sim.layers.FCLayerDescriptor(n_inputs, n_neurons, tau_s, threshold)
+    desc = sim.layers.FCLayerDescriptor(n_inputs=2, n_neurons=3, tau_s=0.020, threshold=0.020 * 0.2)
     layer = network.add_layer(desc)
 
     # Set weights
     layer.weights = np.array([[1.0, 0.3],
                               [-0.1, 0.8],
-                              [0.5, 0.4]], dtype=np.float32) # Weights need to be of type float32
+                              [0.5, 0.4]], dtype=np.float32)
 
-    # Mutate weight
+    # Mutate synapse 1 of neuron 0 
     layer.weights[0, 1] -= 0.1
 
     # Create input spikes
-    input_indices = np.array([0, 1, 1], dtype=np.uint32) # Spike indices need to be of type uint32 or int32
-    input_times = np.array([1.0, 1.5, 1.2], dtype=np.float32) # Spike times need to be of type float32
-    input_spikes = sim.SpikeArray(input_indices, input_times)
-    input_spikes.sort() # Input spikes need to be sorted in time prior to inference
+    input_indices = np.array([0, 1, 1], dtype=np.int32)
+    input_times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
 
     # Inference
-    output_spikes = network.infer(input_spikes)
-
-    print("Input spikes:")
-    print(input_spikes)
+    output_spikes = network.infer(input_indices, input_times)
 
     print("Output spikes:")
     print(output_spikes)
 
     print("Output spike counts:")
     print(layer.n_spikes)
-
-if __name__ == "__main__":
-    main()
 ```
 This code can run with either the CPU or GPU versions of EvSpikeSim.
 

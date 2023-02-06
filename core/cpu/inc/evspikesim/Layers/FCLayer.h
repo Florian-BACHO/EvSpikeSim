@@ -13,8 +13,11 @@
 namespace EvSpikeSim {
     class FCLayer : public Layer {
     public:
+        using descriptor_type = FCLayerDescriptor;
+
+    public:
         template <typename... Args>
-        FCLayer(const FCLayerDescriptor &desc, std::shared_ptr<ThreadPool> thread_pool, Args... args) :
+        FCLayer(const descriptor_type &desc, std::shared_ptr<ThreadPool> thread_pool, Args... args) :
                 Layer(desc, thread_pool, {desc.n_neurons, desc.n_inputs}, args...) {}
 
         const SpikeArray &infer(const SpikeArray &pre_spikes) override;

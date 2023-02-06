@@ -2,8 +2,8 @@
 // Created by Florian Bacho on 02/02/23.
 //
 
-#include <evspikesim/Layers/FCLayer.h>
 #include <evspikesim/SpikingNetwork.h>
+#include <evspikesim/Layers/FCLayer.h>
 
 namespace sim = EvSpikeSim;
 
@@ -25,22 +25,17 @@ int main() {
     std::vector<float> weights = {1.0, 0.3,
                                   -0.1, 0.8,
                                   0.5, 0.4};
-    std::copy(weights.data(), weights.data() + weights.size(), layer->get_weights().c_ptr());
+    layer->get_weights() = weights;
 
-    // Mutate weight
+    // Mutate synapse 1 of neuron 0 
     layer->get_weights().get(0, 1) -= 0.1;
 
     // Create input spikes
     std::vector<unsigned int> input_indices = {0, 1, 1};
     std::vector<float> input_times = {1.0, 1.5, 1.2};
-    auto input_spikes = sim::SpikeArray(input_indices, input_times);
-    input_spikes.sort();
 
     // Inference
-    auto output_spikes = network.infer(input_spikes);
-
-    std::cout << "Input spikes:" << std::endl;
-    std::cout << input_spikes << std::endl;
+    auto output_spikes = network.infer(input_indices, input_times);
 
     std::cout << "Output spikes:" << std::endl;
     std::cout << output_spikes << std::endl;

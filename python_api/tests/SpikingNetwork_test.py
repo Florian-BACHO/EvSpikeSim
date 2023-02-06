@@ -73,7 +73,7 @@ class TestSpikingNetwork(unittest.TestCase):
             self.assertAlmostEqual(layer.descriptor.tau, 2 * tau_s)
             self.assertAlmostEqual(layer.descriptor.threshold, threshold)
 
-    def test_infer(self):
+    def test_infer_spike_array(self):
         weights = np.array([[1.0, 0.2],
                             [-0.1, 0.8],
                             [0.5, 0.4]], dtype=np.float32)
@@ -96,6 +96,43 @@ class TestSpikingNetwork(unittest.TestCase):
         output_spikes = net.infer(inputs)
         self.assertEqual(output_spikes, targets)
 
+    def test_infer_spike_array_unsorted_exception(self):
+        weights = np.array([[1.0, 0.2],
+                            [-0.1, 0.8],
+                            [0.5, 0.4]], dtype=np.float32)
+
+        indices = np.array([0, 1, 1], dtype=np.uint32)
+        times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
+        inputs = sim.SpikeArray(indices, times)
+
+        net = sim.SpikingNetwork()
+        layer = net.add_layer(FCLayerDescriptor(2, 3, 0.020, 0.020 * 0.2))
+        layer.weights = weights
+
+        self.assertRaises(RuntimeError, net.infer, inputs)
+
+
+    def test_infer_no_spike_array(self):
+        weights = np.array([[1.0, 0.2],
+                            [-0.1, 0.8],
+                            [0.5, 0.4]], dtype=np.float32)
+
+        input_indices = np.array([0, 1, 1], dtype=np.uint32)
+        input_times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
+
+        targets_indices = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2], dtype=np.uint32)
+        targets_times = np.array([1.0047829, 1.0112512, 1.0215546, 1.2063813, 1.2163547, 1.506313, 1.5162327,
+                                  1.0129402, 1.2233235, 1.5267321], dtype=np.float32)
+        targets = sim.SpikeArray(targets_indices, targets_times)
+        targets.sort()
+
+        net = sim.SpikingNetwork()
+        layer = net.add_layer(FCLayerDescriptor(2, 3, 0.020, 0.020 * 0.2))
+        layer.weights = weights
+
+        output_spikes = net.infer(indices=input_indices, times=input_times)
+        self.assertEqual(output_spikes, targets)
+
     def test_infer_reset(self):
         weights = np.array([[1.0, 0.2],
                             [-0.1, 0.8],
@@ -116,6 +153,6 @@ class TestSpikingNetwork(unittest.TestCase):
         layer = net.add_layer(FCLayerDescriptor(2, 3, 0.020, 0.020 * 0.2))
         layer.weights = weights
 
-        output_spikes = net.infer(inputs) # Run a first time
+        net.infer(inputs) # Run a first time
         output_spikes = net.infer(inputs)
         self.assertEqual(output_spikes, targets)

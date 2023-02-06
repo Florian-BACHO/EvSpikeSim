@@ -1,7 +1,7 @@
 name: cpp_library
 
 on:
-  push:
+  pull_request:
     branches:
     - '*'
 

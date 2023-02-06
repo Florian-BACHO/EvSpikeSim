@@ -7,7 +7,9 @@ import pybind11
 
 CUDA = None
 SOURCES = ["src/EvSpikeSimPackage.cpp",
-           "src/LayersModule.cpp"]
+           "src/LayersModule.cpp",
+           "src/InitializersModule.cpp",
+           "src/RandomModule.cpp"]
 
 def locate_pybind_includes():
     return pybind11.get_include()
@@ -92,7 +94,6 @@ def setup_gpu(version):
     global CUDA
     CUDA = locate_cuda()
 
-    print(CUDA)
     ext = Extension('evspikesim',
                     sources=SOURCES,
                     library_dirs=["../build/lib/", CUDA['lib64']],
@@ -121,7 +122,6 @@ def setup_cpu(version):
                     # Uncomment to use locally the built evspikesim library instead of installed version
                     libraries=["evspikesim"],
                     extra_compile_args=["-std=c++17"],
-                    undef_macros=["BUILD_GPU"],
                     sources=SOURCES)
 
     setup(name="EvSpikeSim",

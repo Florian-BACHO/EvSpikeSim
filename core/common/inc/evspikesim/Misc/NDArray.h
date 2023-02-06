@@ -4,58 +4,91 @@
 
 #pragma once
 
+#include <memory>
 #include <initializer_list>
 #include <functional>
 #include <array>
 #include <vector>
+#include <evspikesim/Initializers/Initializer.h>
 
 namespace EvSpikeSim {
-    template <typename T = float, class Allocator = std::allocator<T>>
+    template<typename T = float, class Allocator = std::allocator<T>>
     class NDArray {
-    public:
-        using init_fct = std::function<T()>;
 
     public:
-        NDArray(const std::initializer_list<unsigned int> &dimensions) : dims(dimensions),
-        values(NDArray::count_n_elems(dimensions)) {}
+        NDArray(const std::initializer_list<unsigned int> &dimensions) :
+                dims(dimensions), values(NDArray::count_n_elems(dimensions)) {}
 
-        NDArray(const std::initializer_list<unsigned int> &dimensions, T fill_value) : dims(dimensions),
-        values(NDArray::count_n_elems(dimensions), fill_value) {}
+        NDArray(const std::initializer_list<unsigned int> &dimensions, T fill_value) :
+                dims(dimensions), values(NDArray::count_n_elems(dimensions), fill_value) {}
 
-        NDArray(const std::initializer_list<unsigned int> &dimensions, const init_fct &fct) : NDArray(dimensions) {
+        NDArray(const std::initializer_list<unsigned int> &dimensions, Initializer &fct) :
+                NDArray(dimensions) {
             for (auto &it : values)
                 it = fct();
         }
 
-        inline unsigned int get_n_dims() const {
+        NDArray(const std::initializer_list<unsigned int> &dimensions, Initializer &&fct) :
+                NDArray(dimensions) {
+            for (auto &it : values)
+                it = fct();
+        }
+
+        NDArray(const std::initializer_list<unsigned int> &dimensions, std::shared_ptr<Initializer> &fct) :
+                NDArray(dimensions) {
+            for (auto &it : values)
+                it = (*fct)();
+        }
+
+        unsigned int get_n_dims() const {
             return dims.size();
         }
 
-        inline std::vector<unsigned int> get_dims() const {
+        std::vector<unsigned int> get_dims() const {
             return dims;
         }
 
-        inline std::size_t size() const {
+        std::size_t size() const {
             return values.size();
         }
 
-        template <typename U, typename... Args>
-        inline T &get(U first_idx, Args... indices) {
+        template<typename U, typename... Args>
+        T &get(U first_idx, Args... indices) {
             return values[get_index(dims.begin(), U(0), first_idx, indices...)];
         }
 
-        template <typename U, typename... Args>
-        inline const T &get(U first_idx, Args... indices) const {
+        std::vector<T, Allocator> &get_values() {
+            return values;
+        }
+
+        template <class IteratorType>
+        void set_values(const IteratorType &begin, const IteratorType &end) {
+            values.assign(begin, end);
+        }
+
+        template <class ContainerType>
+        void set_values(const ContainerType &other) {
+            set_values(other.begin(), other.end());
+        }
+
+        template<typename U, typename... Args>
+        const T &get(U first_idx, Args... indices) const {
             return values[get_index(dims.begin(), U(0), first_idx, indices...)];
         }
 
-        template <typename U, typename... Args>
-        inline void set(T value, U first_idx, Args... indices) {
+        template<typename U, typename... Args>
+        void set(T value, U first_idx, Args... indices) {
             values[get_index(dims.begin(), U(0), first_idx, indices...)] = value;
         }
 
-        inline T *c_ptr() {
+        T *get_c_ptr() {
             return values.data();
+        }
+
+        template <class ContainerType>
+        NDArray<T, Allocator> &operator=(const ContainerType &other) {
+            set_values(other);
+            return *this;
         }
 
     private:
@@ -71,14 +104,14 @@ namespace EvSpikeSim {
             return n_elems;
         }
 
-        template <typename Iterator, typename U>
+        template<typename Iterator, typename U>
         U get_index(Iterator dim, U out) const {
-            (void)dim; // Unused
+            (void) dim; // Unused
 
             return out;
         }
 
-        template <typename Iterator, typename U, typename... Args>
+        template<typename Iterator, typename U, typename... Args>
         U get_index(Iterator dim, U out, U idx, Args... indices) const {
             return get_index(dim + 1, out * U(*dim) + idx, indices...);
         }
