@@ -243,7 +243,7 @@ docker build -t evspikesim_cpu -f docker/cpu/Dockerfile .
 is required to be able to use GPUs in Docker containers.
 After installing nvidia-docker, run from the project root:
 ```
-sudo nvidia-docker build -t evspikesim_gpu -f docker/gpu/Dockerfile .
+nvidia-docker build -t evspikesim_gpu -f docker/gpu/Dockerfile .
 ```
 
 ## Unit Tests
