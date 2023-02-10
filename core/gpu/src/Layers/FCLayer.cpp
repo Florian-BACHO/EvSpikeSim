@@ -9,33 +9,31 @@
 
 using namespace EvSpikeSim;
 
+FCLayer::FCLayer(const descriptor_type &desc, unsigned int buffer_size) :
+        Layer(desc, {desc.n_neurons, desc.n_inputs}, buffer_size) {}
+
+FCLayer::FCLayer(const descriptor_type &desc, Initializer &initializer, unsigned int buffer_size) :
+        Layer(desc, {desc.n_neurons, desc.n_inputs}, initializer, buffer_size) {}
+
+FCLayer::FCLayer(const descriptor_type &desc, Initializer &&initializer,
+                 unsigned int buffer_size) :
+        FCLayer(desc, initializer, buffer_size) {}
+
 struct KernelData {
-    const Spike *pre_spikes;
-    std::size_t n_pre_spikes;
     FCLayerDescriptor desc;
+    const Spike **current_pre_spike;
+    const Spike *end_pre_spikes;
     unsigned int *n_spikes;
     float *weights;
     float *a;
     float *b;
     float *buffer;
+    bool *buffer_full;
     unsigned int buffer_size;
 };
 
-void FCLayer::process_buffer() {
-    float time;
-
-    for (unsigned int i = 0; i < desc.n_neurons; i++) {
-        for (unsigned int j = 0; j < buffer_size; j++) {
-            time = buffer[i * buffer_size + j];
-            if (time == infinity)
-                break;
-            post_spikes.add(i, time);
-        }
-    }
-}
-
 __device__ void apply_decay_and_weight(KernelData &kernel_data, unsigned int neuron_idx, float delta_t,
-        unsigned int pre_idx) {
+                                       unsigned int pre_idx) {
     float weight = kernel_data.weights[neuron_idx * kernel_data.desc.n_inputs + pre_idx];
     float exp_tau = exp(-delta_t / kernel_data.desc.tau);
     float exp_tau_s = exp_tau * exp_tau; // Because tau = 2 * tau_s, squaring exp_tau gives exp_tau_s
@@ -60,7 +58,7 @@ __inline__ __device__ float apply_reset(float b, float c, float inside_log) {
     return b - c * inside_log;
 }
 
-__device__ void fire(KernelData &kernel_data, unsigned int neuron_idx, float current_time,
+__device__ bool fire(KernelData &kernel_data, unsigned int neuron_idx, float current_time,
                      float next_pre_time, unsigned int &n_spike_buffer) {
     bool valid_spike;
     float x, inside_log, spike_time;
@@ -71,62 +69,95 @@ __device__ void fire(KernelData &kernel_data, unsigned int neuron_idx, float cur
     float last_time = 0.0;
 
     while (n_spike_buffer < kernel_data.buffer_size) {
+        // Compute spike time
         x = compute_inside_x(a, *b, c);
         if (x < 0)
-            return;
+            return false;
         x = sqrt(x);
         inside_log = compute_inside_log(a, *b, x);
         if (inside_log <= 0)
-            return;
+            return false;
         spike_time = compute_spike_time(inside_log, tau);
+
+        // Check for valid spike
         valid_spike = last_time < spike_time && spike_time < next_pre_time;
         if (!valid_spike)
-            return;
+            return false;
+
+        // Valid spike
         last_time = spike_time;
         kernel_data.n_spikes[neuron_idx]++;
-        // Add current_time as spike time is relative to last pre-spike
         kernel_data.buffer[neuron_idx * kernel_data.buffer_size + n_spike_buffer] = current_time + spike_time;
         *b = apply_reset(*b, c, inside_log);
         n_spike_buffer++;
+
+        // Reached the end of the buffer
+        if (n_spike_buffer == kernel_data.buffer_size) {
+            *(kernel_data.buffer_full) = true;
+            return true;
+        }
     }
+    return false;
 }
 
-__global__ void infer_kernel(KernelData kernel_data) {
+// Get the relative time to the next pre-synaptic spike
+__inline__ __device__ float get_next_spike_time(const Spike *spike, const Spike *end) {
+    return (spike == end - 1) ? (INFINITY) : ((spike + 1)->time - spike->time);
+}
+
+__global__ void infer_kernel(KernelData kernel_data, bool first_call) {
     auto neuron_idx = threadIdx.x;
     unsigned int n_spike_buffer = 0;
     float next_time = 0.0;
-    auto last_spike_idx = kernel_data.n_pre_spikes - 1;
+    const Spike **current_pre_spike = kernel_data.current_pre_spike + neuron_idx;
 
-    for (auto i = 0; i < kernel_data.n_pre_spikes; i++) {
+    if (!first_call && *current_pre_spike != kernel_data.end_pre_spikes) {
+        next_time = get_next_spike_time(*current_pre_spike, kernel_data.end_pre_spikes);
+        if (fire(kernel_data, neuron_idx, (*current_pre_spike)->time, next_time, n_spike_buffer))
+            return;
+        (*current_pre_spike)++;
+    }
+    while (*current_pre_spike != kernel_data.end_pre_spikes) {
         if (n_spike_buffer >= kernel_data.buffer_size)
             break;
-        apply_decay_and_weight(kernel_data, neuron_idx, next_time, kernel_data.pre_spikes[i].index);
-        next_time = (i == last_spike_idx) ? (INFINITY) : (kernel_data.pre_spikes[i + 1].time -
-                kernel_data.pre_spikes[i].time);
-        fire(kernel_data, neuron_idx, kernel_data.pre_spikes[i].time, next_time, n_spike_buffer);
+        apply_decay_and_weight(kernel_data, neuron_idx, next_time, (*current_pre_spike)->index);
+        next_time = get_next_spike_time(*current_pre_spike, kernel_data.end_pre_spikes);
+        if (fire(kernel_data, neuron_idx, (*current_pre_spike)->time, next_time, n_spike_buffer))
+            return;
+        (*current_pre_spike)++;
     }
 }
 
 const SpikeArray &FCLayer::infer(const SpikeArray &pre_spikes) {
     KernelData kernel_data = {
-            pre_spikes.get_c_ptr(),
-            pre_spikes.n_spikes(),
             *static_cast<const FCLayerDescriptor *>(&desc),
+            current_pre_spike.data(),
+            pre_spikes.get_c_ptr() + pre_spikes.n_spikes(),
             n_spikes.data(),
             weights.get_c_ptr(),
             a.data(),
             b.data(),
             buffer.data(),
+            buffer_full,
             buffer_size
     };
+    bool first_call = true;
 
-    reset();
-    cudaDeviceSynchronize();
+    reset(pre_spikes);
 
-    infer_kernel<<<1, desc.n_neurons>>>(kernel_data);
-    cudaDeviceSynchronize();
+    if (pre_spikes.is_empty())
+        return post_spikes;
 
-    process_buffer();
+    do {
+        reset_buffer();
+        cudaDeviceSynchronize();
+
+        infer_kernel << < 1, desc.n_neurons >> > (kernel_data, first_call);
+        cudaDeviceSynchronize();
+
+        process_buffer();
+        first_call = false;
+    } while (*buffer_full);
 
     post_spikes.sort();
     return post_spikes;

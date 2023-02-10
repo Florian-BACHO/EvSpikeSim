@@ -29,18 +29,6 @@ TEST(NDArrayTest, Dimensions) {
     EXPECT_EQ(mat.size(), 21u * 42u);
 }
 
-
-TEST(NDArrayTest, FillConstructor) {
-    NDArray<float> mat({21, 42}, 84.42);
-    auto dims = mat.get_dims();
-
-    EXPECT_EQ(dims[0], 21u);
-    EXPECT_EQ(dims[1], 42u);
-    for (auto y = 0u; y < dims[0]; y++)
-        for (auto x = 0u; x < dims[1]; x++)
-            EXPECT_FLOAT_EQ(mat.get(y, x), 84.42);
-}
-
 TEST(NDArrayTest, InitConstructorIncremental) {
     NDArray<float> mat({21, 42}, IncrementalInitFct());
     auto dims = mat.get_dims();
@@ -54,7 +42,7 @@ TEST(NDArrayTest, InitConstructorIncremental) {
 }
 
 TEST(NDArrayTest, SetValue) {
-    NDArray<float> mat({21, 42}, 0.0);
+    NDArray<float> mat({21, 42});
     auto dims = mat.get_dims();
 
     mat.set(42.21, 2, 3);
@@ -66,7 +54,7 @@ TEST(NDArrayTest, SetValue) {
 }
 
 TEST(NDArrayTest, CPtr) {
-    NDArray<float> tensor({21, 42, 84}, 0.0);
+    NDArray<float> tensor({21, 42, 84});
     float *ptr = tensor.get_c_ptr();
     auto dims = tensor.get_dims();
 

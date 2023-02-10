@@ -17,13 +17,13 @@ namespace EvSpikeSim {
     public:
         SpikingNetwork() = default;
 
-        template <typename... Args>
-        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, Args... args) {
-            auto layer = std::make_shared<FCLayer>(descriptor, args...);
+        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, unsigned int buffer_size = 64u);
 
-            layers.push_back(layer);
-            return layer;
-        }
+        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, Initializer &initializer,
+                                           unsigned int buffer_size = 64u);
+
+        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, Initializer &&initializer,
+                                           unsigned int buffer_size = 64u);
 
         const SpikeArray &infer(const SpikeArray &pre_spikes);
 
