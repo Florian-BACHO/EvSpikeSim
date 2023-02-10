@@ -1,8 +1,7 @@
 //
-// Created by Florian Bacho on 23/01/23.
+// Created by Florian Bacho on 08/02/23.
 //
 
-#include <evspikesim/Layers/FCLayer.h>
 #include <evspikesim/SpikingNetwork.h>
 
 using namespace EvSpikeSim;

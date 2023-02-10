@@ -8,7 +8,7 @@
 
 using namespace EvSpikeSim;
 
-TEST(LayerDescriptorTest, Values) {
+TEST(LayerTest, Values) {
     LayerDescriptor desc(42, 21, 0.1, 1.0);
 
     EXPECT_EQ(desc.n_inputs, 42u);

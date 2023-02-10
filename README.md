@@ -112,7 +112,7 @@ python3 setup.py install --gpu
 ```
 If the nvcc compiler is not found, try specifying the path to the Cuda home directory in your environment:
 ```
-CUDAHOME=/path/to/cuda/ python3 setup.py install
+CUDAHOME=/path/to/cuda/ python3 setup.py install --gpu
 ```
 
 ## Usage

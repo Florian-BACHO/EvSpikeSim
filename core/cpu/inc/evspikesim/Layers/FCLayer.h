@@ -16,17 +16,24 @@ namespace EvSpikeSim {
         using descriptor_type = FCLayerDescriptor;
 
     public:
-        template <typename... Args>
-        FCLayer(const descriptor_type &desc, std::shared_ptr<ThreadPool> thread_pool, Args... args) :
-                Layer(desc, thread_pool, {desc.n_neurons, desc.n_inputs}, args...) {}
+        FCLayer(const descriptor_type &desc, std::shared_ptr<ThreadPool> &thread_pool, unsigned int buffer_size = 64u);
+
+        FCLayer(const descriptor_type &desc, std::shared_ptr<ThreadPool> &thread_pool, Initializer &initializer,
+                unsigned int buffer_size = 64u);
+
+        FCLayer(const descriptor_type &desc, std::shared_ptr<ThreadPool> &thread_pool, Initializer &&initializer,
+                unsigned int buffer_size = 64u);
 
         const SpikeArray &infer(const SpikeArray &pre_spikes) override;
 
     private:
         void apply_decay_and_weight(unsigned int neuron_idx, float delta_t, unsigned int pre_idx);
-        void fire(unsigned int neuron_idx, float current_time, float next_pre_time, unsigned int &n_spike_buffer);
-        void infer_neuron(const SpikeArray &pre_spikes, unsigned int neuron_start);
-        void infer_range(const SpikeArray &pre_spikes, unsigned int neuron_start, unsigned int neuron_end);
-        void process_buffer();
+
+        bool fire(unsigned int neuron_idx, float current_time, float next_pre_time, unsigned int &n_spike_buffer);
+
+        void infer_neuron(const SpikeArray &pre_spikes, unsigned int neuron_start, bool first_call);
+
+        void infer_range(const SpikeArray &pre_spikes, unsigned int neuron_start, unsigned int neuron_end,
+                         bool first_call);
     };
 }

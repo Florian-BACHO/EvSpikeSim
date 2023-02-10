@@ -18,17 +18,17 @@ namespace EvSpikeSim {
     public:
         SpikingNetwork() : thread_pool(std::make_shared<ThreadPool>()), layers() {}
 
-        template <typename... Args>
-        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, Args... args) {
-            auto layer = std::make_shared<FCLayer>(descriptor, thread_pool, args...);
+        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, unsigned int buffer_size = 64u);
 
-            layers.push_back(layer);
-            return layer;
-        }
+        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, Initializer &initializer,
+                                           unsigned int buffer_size = 64u);
+
+        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, Initializer &&initializer,
+                                           unsigned int buffer_size = 64u);
 
         const SpikeArray &infer(const SpikeArray &pre_spikes);
 
-        template <class IndicesType, class TimesType>
+        template<class IndicesType, class TimesType>
         const SpikeArray &infer(const IndicesType &indices, const TimesType &times) {
             SpikeArray input_spikes(indices, times);
 
@@ -38,10 +38,11 @@ namespace EvSpikeSim {
 
         // Iterator
         iterator begin();
+
         iterator end();
 
         // Accessor
-        template <typename T>
+        template<typename T>
         std::shared_ptr<Layer> operator[](T idx) { return layers[idx]; }
 
         std::shared_ptr<Layer> get_output_layer();

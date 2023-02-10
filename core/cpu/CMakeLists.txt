@@ -5,12 +5,14 @@ message(STATUS "Compilation Target: CPU")
 find_package(Threads REQUIRED)
 
 set(SRC_LIST
-        ../common/src/SpikingNetwork.cpp
+        ../common/src/Layers/Layer.cpp
         ../common/src/Layers/LayerDescriptor.cpp
         ../common/src/Spike.cpp
         ../common/src/SpikeArray.cpp
+        ../common/src/SpikingNetwork.cpp
         src/Layers/Layer.cpp
-        src/Layers/FCLayer.cpp)
+        src/Layers/FCLayer.cpp
+        src/SpikingNetwork.cpp)
 
 add_library(evspikesim STATIC ${SRC_LIST})
 
