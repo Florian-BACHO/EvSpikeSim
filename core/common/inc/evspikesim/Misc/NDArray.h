@@ -19,9 +19,6 @@ namespace EvSpikeSim {
         NDArray(const std::initializer_list<unsigned int> &dimensions) :
                 dims(dimensions), values(NDArray::count_n_elems(dimensions)) {}
 
-        NDArray(const std::initializer_list<unsigned int> &dimensions, T fill_value) :
-                dims(dimensions), values(NDArray::count_n_elems(dimensions), fill_value) {}
-
         NDArray(const std::initializer_list<unsigned int> &dimensions, Initializer &fct) :
                 NDArray(dimensions) {
             for (auto &it : values)

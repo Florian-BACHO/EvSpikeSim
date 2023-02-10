@@ -12,14 +12,15 @@
 namespace EvSpikeSim {
     class FCLayer : public Layer {
     public:
-        template <typename... Args>
-        FCLayer(const FCLayerDescriptor &desc, Args... args) :
-                Layer(desc, {desc.n_neurons, desc.n_inputs}, args...) {}
+        using descriptor_type = FCLayerDescriptor;
+
+    public:
+        FCLayer(const descriptor_type &desc, unsigned int buffer_size = 64u);
+
+        FCLayer(const descriptor_type &desc, Initializer &initializer, unsigned int buffer_size = 64u);
+
+        FCLayer(const descriptor_type &desc, Initializer &&initializer, unsigned int buffer_size = 64u);
 
         const SpikeArray &infer(const SpikeArray &pre_spikes) override;
-
-    private:
-
-        void process_buffer();
     };
 }

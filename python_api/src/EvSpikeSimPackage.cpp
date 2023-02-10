@@ -85,11 +85,13 @@ static void create_main_module(py::module &m) {
 
     py::class_<SpikingNetwork>(m, "SpikingNetwork")
             .def(py::init())
-            .def("add_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const FCLayerDescriptor &)>
-            (&SpikingNetwork::add_layer), py::arg("descriptor"))
             .def("add_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const FCLayerDescriptor &,
-                                                                                       std::shared_ptr<Initializer> &)>
-            (&SpikingNetwork::add_layer), py::arg("descriptor"), py::arg("initializer"))
+                                                                                       unsigned int)>
+            (&SpikingNetwork::add_layer), py::arg("descriptor"), py::arg("buffer_size") = 64u)
+            .def("add_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const FCLayerDescriptor &,
+                                                                                       Initializer &,
+                                                                                       unsigned int)>
+            (&SpikingNetwork::add_layer), py::arg("descriptor"), py::arg("initializer"), py::arg("buffer_size") = 64u)
             .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const SpikeArray &)>
             (&SpikingNetwork::infer), py::arg("inputs"))
             .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const std::vector<unsigned int> &,
@@ -102,9 +104,10 @@ static void create_main_module(py::module &m) {
             .def_property_readonly("output_layer", &SpikingNetwork::get_output_layer);
 }
 
-PYBIND11_MODULE(evspikesim, m) {
-    create_main_module(m);
-    create_layers_module(m);
-    create_initializers_module(m);
-    create_random_module(m);
+PYBIND11_MODULE(evspikesim, m
+) {
+create_main_module(m);
+create_layers_module(m);
+create_initializers_module(m);
+create_random_module(m);
 }
