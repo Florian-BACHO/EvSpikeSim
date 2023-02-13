@@ -24,6 +24,7 @@ RUN cd build && \
 # Python3 API
 
 #   Install dependencies
+RUN rm -rf python_api/build
 RUN apt-get install -y python3-dev python3-pip
 RUN cd python_api && \
     pip3 install -r requirements.txt
