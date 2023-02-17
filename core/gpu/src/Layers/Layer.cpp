@@ -6,31 +6,29 @@
 
 using namespace EvSpikeSim;
 
-Layer::Layer(const LayerDescriptor &desc, const std::initializer_list<unsigned int> &weights_dims,
+Layer::Layer(const std::initializer_list<unsigned int> &weights_dims,
+             unsigned int n_inputs,
+             unsigned int n_neurons,
+             float tau_s,
+             float threshold,
+             Initializer &initializer,
              unsigned int buffer_size) :
-        desc(desc),
-        post_spikes(),
-        n_spikes(desc.n_neurons),
-        weights(weights_dims),
-        current_pre_spike(desc.n_neurons),
-        a(desc.n_neurons),
-        b(desc.n_neurons),
-        buffer(desc.n_neurons * buffer_size),
-        buffer_size(buffer_size),
-        buffer_full(nullptr) {
-    cudaMallocManaged((void **) &buffer_full, sizeof(bool));
-}
+        n_inputs(n_inputs),
+        n_neurons(n_neurons),
+        tau_s(tau_s),
+        tau(2.0f * tau_s),
+        threshold(threshold),
 
-Layer::Layer(const LayerDescriptor &desc, const std::initializer_list<unsigned int> &weights_dims,
-             Initializer &initializer, unsigned int buffer_size) :
-        desc(desc),
         post_spikes(),
-        n_spikes(desc.n_neurons),
+        n_spikes(n_neurons),
+
         weights(weights_dims, initializer),
-        current_pre_spike(desc.n_neurons),
-        a(desc.n_neurons),
-        b(desc.n_neurons),
-        buffer(desc.n_neurons * buffer_size),
+
+        current_pre_spike(n_neurons),
+        a(n_neurons),
+        b(n_neurons),
+
+        buffer(n_neurons * buffer_size),
         buffer_size(buffer_size),
         buffer_full(nullptr) {
     cudaMallocManaged((void **) &buffer_full, sizeof(bool));

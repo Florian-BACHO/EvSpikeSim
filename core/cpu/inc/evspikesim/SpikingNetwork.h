@@ -5,26 +5,50 @@
 #pragma once
 
 #include <vector>
+#include <evspikesim/Initializers/ConstantInitializer.h>
 #include <evspikesim/Layers/Layer.h>
 #include <evspikesim/Layers/FCLayer.h>
 #include <evspikesim/Misc/ThreadPool.h>
 #include <evspikesim/Misc/NDArray.h>
+#include <evspikesim/Misc/JITCompiler.h>
 
 namespace EvSpikeSim {
     class SpikingNetwork {
     public:
         using iterator = std::vector<std::shared_ptr<Layer>>::iterator;
+        
+        static constexpr char default_compile_path[] = "/tmp/evspikesim";
 
     public:
-        SpikingNetwork() : thread_pool(std::make_shared<ThreadPool>()), layers() {}
+        SpikingNetwork(const std::string &compile_path = default_compile_path);
 
-        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, unsigned int buffer_size = 64u);
+        ~SpikingNetwork();
 
-        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, Initializer &initializer,
-                                           unsigned int buffer_size = 64u);
+        template<class LayerType, typename... Args>
+        std::shared_ptr<LayerType> add_layer(Args... args) {
+            auto layer = std::make_shared<LayerType>(args...);
 
-        std::shared_ptr<FCLayer> add_layer(const FCLayerDescriptor &descriptor, Initializer &&initializer,
-                                           unsigned int buffer_size = 64u);
+            layer->set_thread_pool(thread_pool);
+            layers.push_back(layer);
+            return layer;
+        }
+
+        template<class BaseLayerType, typename... Args>
+        std::shared_ptr<BaseLayerType> add_layer_from_source(const std::string &src_path, Args... args) {
+            // Compile source file
+            auto &dlib = (*compiler)(src_path);
+
+            // Load extern "C" kernel
+            auto kernel_fct = reinterpret_cast<typename BaseLayerType::kernel_signature>
+            (dlib(BaseLayerType::kernel_symbol));
+
+            // Create layer
+            auto layer = std::make_shared<BaseLayerType>(args..., kernel_fct);
+
+            layer->set_thread_pool(thread_pool);
+            layers.push_back(layer);
+            return layer;
+        }
 
         const SpikeArray &infer(const SpikeArray &pre_spikes);
 
@@ -52,5 +76,6 @@ namespace EvSpikeSim {
     private:
         std::shared_ptr<ThreadPool> thread_pool;
         std::vector<std::shared_ptr<Layer>> layers;
+        std::unique_ptr<JITCompiler> compiler;
     };
 }

@@ -5,11 +5,10 @@ import numpy as np
 
 class TestRandomModule(unittest.TestCase):
     def get_weights(self):
-        desc = sim.layers.FCLayerDescriptor(2, 3, 0.1, 1.0)
         network = sim.SpikingNetwork()
         init = sim.initializers.UniformInitializer()
 
-        return network.add_layer(desc, init).weights
+        return network.add_fc_layer(10, 10, 0.020, 0.1, init).weights
 
     def test_seed(self):
         sim.random.set_seed(42)

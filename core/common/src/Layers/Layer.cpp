@@ -9,7 +9,7 @@ using namespace EvSpikeSim;
 void Layer::process_buffer() {
     float time;
 
-    for (unsigned int i = 0; i < desc.n_neurons; i++) {
+    for (unsigned int i = 0; i < n_neurons; i++) {
         for (unsigned int j = 0; j < buffer_size; j++) {
             time = buffer[i * buffer_size + j];
             if (time == infinity)

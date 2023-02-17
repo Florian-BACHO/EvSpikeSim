@@ -4,31 +4,32 @@
 
 #include <string>
 #include <gtest/gtest.h>
+#include <evspikesim/Initializers/ConstantInitializer.h>
 #include <evspikesim/Layers/FCLayer.h>
 #include <evspikesim/SpikingNetwork.h>
 
 using namespace EvSpikeSim;
 
 TEST(SpikingNetworkTest, AddLayer) {
-    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
+    auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
 
     ASSERT_EQ(network.get_n_layers(), 0u);
 
-    network.add_layer(desc);
+    network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
 
     ASSERT_EQ(network.get_n_layers(), 1u);
 
-    network.add_layer(desc);
-    network.add_layer(desc);
+    network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
+    network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
 
     ASSERT_EQ(network.get_n_layers(), 3u);
 }
 
 TEST(SpikingNetworkTest, InferenceSpikeArray) {
-    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
+    auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
-    auto layer = network.add_layer(desc);
+    auto layer = network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
 
     SpikeArray input_spikes = SpikeArray();
     std::vector<float> weights = {1.0, 0.2,
@@ -61,9 +62,9 @@ TEST(SpikingNetworkTest, InferenceSpikeArray) {
 }
 
 TEST(SpikingNetworkTest, InferenceSpikeArrayUnsortedThrow) {
-    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
+    auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
-    auto layer = network.add_layer(desc);
+    auto layer = network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
 
     SpikeArray input_spikes = SpikeArray();
 
@@ -77,9 +78,9 @@ TEST(SpikingNetworkTest, InferenceSpikeArrayUnsortedThrow) {
 }
 
 TEST(SpikingNetworkTest, InferenceVectors) {
-    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
+    auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
-    auto layer = network.add_layer(desc);
+    auto layer = network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
     std::vector<unsigned int> input_indices = {0, 1, 1};
     std::vector<float> input_times = {1.0, 1.5, 1.2};
 
@@ -108,9 +109,9 @@ TEST(SpikingNetworkTest, InferenceVectors) {
 }
 
 TEST(SpikingNetworkTest, ResetInference) {
-    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
+    auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
-    auto layer = network.add_layer(desc);
+    auto layer = network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
 
     SpikeArray input_spikes = SpikeArray();
     std::vector<float> weights = {1.0, 0.2,
@@ -145,11 +146,11 @@ TEST(SpikingNetworkTest, ResetInference) {
 }
 
 TEST(SpikingNetworkTest, Accessor) {
-    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
+    auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
-    auto layer_1 = network.add_layer(desc);
-    auto layer_2 = network.add_layer(desc);
-    auto layer_3 = network.add_layer(desc);
+    auto layer_1 = network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
+    auto layer_2 = network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
+    auto layer_3 = network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
 
     ASSERT_EQ(layer_1, network[0]);
     ASSERT_NE(layer_1, network[1]);
@@ -165,11 +166,11 @@ TEST(SpikingNetworkTest, Accessor) {
 }
 
 TEST(SpikingNetworkTest, Iterator) {
-    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
+    auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
-    std::vector<std::shared_ptr<Layer>> layers = {network.add_layer(desc),
-                                                  network.add_layer(desc),
-                                                  network.add_layer(desc)};
+    std::vector<std::shared_ptr<Layer>> layers = {network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer),
+                                                  network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer),
+                                                  network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer)};
     auto layer_begin = layers.begin();
 
     for (auto it : network) {
@@ -179,12 +180,11 @@ TEST(SpikingNetworkTest, Iterator) {
 }
 
 TEST(SpikingNetworkTest, GetOutputLayer) {
-    FCLayerDescriptor desc(2, 3, 0.020, 0.020 * 0.2);
-    FCLayerDescriptor desc2(3, 2, 0.030, 0.030 * 0.2);
+    auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
 
-    network.add_layer(desc);
-    auto true_output = network.add_layer(desc2);
+    network.add_layer<FCLayer>(2, 3, 0.020, 0.1, initializer);
+    auto true_output = network.add_layer<FCLayer>(3, 2, 0.030, 0.030, initializer);
 
     ASSERT_EQ(network.get_output_layer(), true_output);
 }
