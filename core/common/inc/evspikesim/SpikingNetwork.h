@@ -5,15 +5,17 @@
 #pragma once
 
 #include <vector>
+#include <evspikesim/Initializers/ConstantInitializer.h>
 #include <evspikesim/Layers/Layer.h>
 #include <evspikesim/Layers/FCLayer.h>
+#include <evspikesim/Misc/NDArray.h>
 #include <evspikesim/Misc/JITCompiler.h>
 
 namespace EvSpikeSim {
     class SpikingNetwork {
     public:
         using iterator = std::vector<std::shared_ptr<Layer>>::iterator;
-
+        
         static constexpr char default_compile_path[] = "/tmp/evspikesim";
 
     public:
@@ -35,8 +37,7 @@ namespace EvSpikeSim {
             auto &dlib = (*compiler)(src_path);
 
             // Load extern "C" kernel
-            auto kernel_fct = reinterpret_cast<typename BaseLayerType::kernel_signature>
-            (dlib(BaseLayerType::kernel_symbol));
+            auto kernel_fct = reinterpret_cast<infer_kernel_fct>(dlib(infer_kernel_symbol));
 
             // Create layer
             auto layer = std::make_shared<BaseLayerType>(args..., kernel_fct);

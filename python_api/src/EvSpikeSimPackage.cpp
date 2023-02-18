@@ -2,6 +2,8 @@
 // Created by Florian Bacho on 28/01/23.
 //
 
+#define PYBIND11_DETAILED_ERROR_MESSAGES
+
 #include <sstream>
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>

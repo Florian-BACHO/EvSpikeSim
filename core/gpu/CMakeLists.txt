@@ -2,16 +2,17 @@ message(STATUS "Compilation Target: GPU")
 
 set(SRC_LIST
         ../common/src/Layers/Layer.cpp
-        ../common/src/Layers/DefaultFCLayerKernel.cpp
+        ../common/src/Layers/FCLayer.cpp
+        ../common/src/Layers/DefaultInferKernel.cpp
         ../common/src/Misc/DynamicLibraryLoader.cpp
         ../common/src/Misc/JITCompiler.cpp
         ../common/src/Spike.cpp
         ../common/src/SpikeArray.cpp
         ../common/src/SpikingNetwork.cpp
         src/Layers/Layer.cpp
-        src/Layers/FCLayer.cpp
+        src/Misc/GPUDevice.cpp
         src/Misc/JITCompiler.cpp
-        src/SpikingNetwork.cpp)
+        )
 
 set_source_files_properties(${SRC_LIST} PROPERTIES LANGUAGE CUDA)
 

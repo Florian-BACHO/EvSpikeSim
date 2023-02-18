@@ -11,7 +11,7 @@ namespace EvSpikeSim {
     template<typename T>
     class CudaManagedAllocator {
     public:
-        using size_type = size_t;
+        using size_type = std::size_t;
         using pointer = T *;
         using const_pointer = const T *;
         using value_type = T;

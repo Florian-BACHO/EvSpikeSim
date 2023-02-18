@@ -2,14 +2,13 @@
 // Created by Florian Bacho on 14/02/23.
 //
 
-#ifndef KERNEL_SOURCE_DEFINITION
-#define KERNEL_SOURCE_DEFINITION
-#endif
+#include <evspikesim/Layers/InferKernel.h>
 
-#include <evspikesim/Layers/FCLayerKernel.h>
+extern "C" unsigned int n_synaptic_traces = 0u; // Number of traces per synapse
+extern "C" unsigned int n_neuron_traces = 0u; // Number of traces per neuron
 
 CALLBACK float EvSpikeSim::on_pre(const Spike &pre_spike, float weight) {
     (void)pre_spike;
 
-    return 2.0f * weight;
+    return 2.0f * weight; // Weight scaling
 }

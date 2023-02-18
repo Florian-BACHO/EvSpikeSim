@@ -8,8 +8,9 @@
 #include <limits>
 #include <initializer_list>
 #include <evspikesim/SpikeArray.h>
-#include <evspikesim/Misc/ThreadPool.h>
+#include <evspikesim/Layers/InferKernelDeclarations.h>
 #include <evspikesim/Misc/NDArray.h>
+#include <evspikesim/Misc/ContainerTypes.h>
 
 namespace EvSpikeSim {
     class Layer {
@@ -20,13 +21,10 @@ namespace EvSpikeSim {
               float tau_s,
               float threshold,
               Initializer &initializer,
-              unsigned int buffer_size);
+              unsigned int buffer_size,
+              infer_kernel_fct kernel_fct = infer_kernel);
 
-        void set_thread_pool(std::shared_ptr<ThreadPool> &new_thread_pool);
-
-        virtual ~Layer() = default;
-
-        virtual const SpikeArray &infer(const SpikeArray &pre_spikes) = 0;
+        const SpikeArray &infer(const SpikeArray &pre_spikes);
 
         inline auto get_n_inputs() const { return n_inputs; }
 
@@ -51,6 +49,11 @@ namespace EvSpikeSim {
 
         void process_buffer();
 
+    private:
+        KernelData get_kernel_data();
+
+        void *get_thread_pool_ptr() const; // Return nullptr in GPU implementation
+
     protected:
         static constexpr float infinity = std::numeric_limits<float>::infinity();
 
@@ -60,19 +63,20 @@ namespace EvSpikeSim {
         const float tau;
         const float threshold;
 
-        std::shared_ptr<ThreadPool> thread_pool;
-
         SpikeArray post_spikes;
-        std::vector<unsigned int> n_spikes; // Counts number of post spikes per neuron
+        EvSpikeSim::vector<unsigned int> n_spikes; // Counts number of post spikes per neuron
 
-        NDArray<float> weights;
+        EvSpikeSim::ndarray<float> weights;
 
-        std::vector<SpikeArray::const_iterator> current_pre_spike; // Keeps track of pre spikes during inference
-        std::vector<float> a; // Sum w * exp(t/tau_s)
-        std::vector<float> b; // Sum w * exp(t/tau) - reset
+        EvSpikeSim::vector<const Spike *> current_pre_spike; // Keeps track of pre spikes during inference
+        EvSpikeSim::vector<float> a; // Sum w * exp(t/tau_s)
+        EvSpikeSim::vector<float> b; // Sum w * exp(t/tau) - reset
 
-        std::vector<float> buffer; // Buffer for spike times
+        EvSpikeSim::vector<float> buffer; // Buffer for spike times
         unsigned int buffer_size;
-        bool buffer_full; // Set to true when a neuron's buffer is full
+        EvSpikeSim::unique_ptr<bool> buffer_full; // Set to true when a neuron's buffer is full
+
+        KernelData kernel_data;
+        infer_kernel_fct kernel_fct;
     };
 }

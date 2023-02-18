@@ -30,24 +30,24 @@ static auto get_strides(const std::vector<unsigned int> &dims) {
     return out;
 }
 
-static auto layer_get_weights(Layer &layer) {
-    auto &weights = layer.get_weights();
+static auto layer_get_weights(std::shared_ptr<Layer> layer) {
+    auto &weights = layer->get_weights();
     auto shape = convert_dim(weights.get_dims());
     auto stride = get_strides(weights.get_dims());
 
     return py::array_t<float>(shape, stride, weights.get_c_ptr(), py::cast(layer));
 }
 
-static void layer_set_weights(Layer &layer, const py::buffer &new_weights) {
+static void layer_set_weights(std::shared_ptr<Layer> layer, const py::buffer &new_weights) {
     auto info = new_weights.request();
     const auto *new_weights_ptr = static_cast<float *>(info.ptr);
-    auto &weights = layer.get_weights();
+    auto &weights = layer->get_weights();
 
     weights.set_values(new_weights_ptr, new_weights_ptr + weights.size());
 }
 
-static auto layer_get_n_spikes(Layer &layer) {
-    auto &n_spikes = layer.get_n_spikes();
+static auto layer_get_n_spikes(std::shared_ptr<Layer> layer) {
+    auto &n_spikes = layer->get_n_spikes();
     std::vector<py::ssize_t> shape = {(py::ssize_t)n_spikes.size()};
     std::vector<py::ssize_t> stride = {sizeof(float)};
 
