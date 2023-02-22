@@ -18,6 +18,7 @@ namespace EvSpikeSim {
                 float threshold,
                 Initializer &initializer,
                 unsigned int buffer_size = 64u,
+                get_traces_tau_fct traces_tau_fct = get_traces_tau,
                 infer_kernel_fct kernel = infer_kernel);
     };
 }

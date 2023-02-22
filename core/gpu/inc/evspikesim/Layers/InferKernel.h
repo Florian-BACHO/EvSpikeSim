@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <evspikesim/Layers/InferKernelBase.h>
+#include <evspikesim/Layers/InferKernelDefinitions.h>
 
 namespace EvSpikeSim {
     GLOBAL void kernel_gpu(KernelData kernel_data, const Spike *end_pre_spikes, bool first_call) {

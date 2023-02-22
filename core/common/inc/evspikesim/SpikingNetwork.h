@@ -38,9 +38,10 @@ namespace EvSpikeSim {
 
             // Load extern "C" kernel
             auto kernel_fct = reinterpret_cast<infer_kernel_fct>(dlib(infer_kernel_symbol));
+            auto traces_tau_fct = reinterpret_cast<get_traces_tau_fct>(dlib(get_traces_tau_symbol));
 
             // Create layer
-            auto layer = std::make_shared<BaseLayerType>(args..., kernel_fct);
+            auto layer = std::make_shared<BaseLayerType>(args..., traces_tau_fct, kernel_fct);
 
             layers.push_back(layer);
             return layer;

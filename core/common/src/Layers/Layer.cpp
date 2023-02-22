@@ -14,6 +14,7 @@ Layer::Layer(const std::initializer_list<unsigned int> &weights_dims,
              float threshold,
              Initializer &initializer,
              unsigned int buffer_size,
+             get_traces_tau_fct traces_tau_fct,
              infer_kernel_fct kernel_fct) :
         n_inputs(n_inputs),
         n_neurons(n_neurons),
@@ -27,6 +28,7 @@ Layer::Layer(const std::initializer_list<unsigned int> &weights_dims,
         weights(weights_dims, initializer),
 
         current_pre_spike(n_neurons),
+        current_time(n_neurons),
         a(n_neurons),
         b(n_neurons),
 
@@ -34,8 +36,19 @@ Layer::Layer(const std::initializer_list<unsigned int> &weights_dims,
         buffer_size(buffer_size),
         buffer_full(EvSpikeSim::make_unique<bool>()),
 
-        kernel_data(get_kernel_data()),
-        kernel_fct(kernel_fct) {}
+        kernel_fct(kernel_fct) {
+    init_traces(traces_tau_fct);
+    kernel_data = get_kernel_data();
+}
+
+void Layer::init_traces(get_traces_tau_fct traces_tau_fct) {
+    auto traces_tau = traces_tau_fct(tau_s, tau);
+
+    synaptic_traces_tau = traces_tau.first;
+    neuron_traces_tau = traces_tau.second;
+    synaptic_traces = EvSpikeSim::vector<float>(weights.size() * synaptic_traces_tau.size());
+    neuron_traces = EvSpikeSim::vector<float>(n_neurons * neuron_traces_tau.size());
+}
 
 KernelData Layer::get_kernel_data() {
     return {
@@ -45,16 +58,27 @@ KernelData Layer::get_kernel_data() {
             tau,
             threshold,
 
-            current_pre_spike.data(),
             n_spikes.data(),
 
             weights.get_c_ptr(),
+
+            current_pre_spike.data(),
+            current_time.data(),
             a.data(),
             b.data(),
 
             buffer.data(),
             buffer_full.get(),
-            buffer_size
+            buffer_size,
+
+            synaptic_traces_tau.data(),
+            neuron_traces_tau.data(),
+
+            synaptic_traces.data(),
+            neuron_traces.data(),
+
+            (unsigned int)synaptic_traces_tau.size(),
+            (unsigned int)neuron_traces_tau.size()
     };
 }
 
@@ -72,11 +96,14 @@ void Layer::process_buffer() {
 }
 
 void Layer::reset(const SpikeArray &pre_spikes) {
+    post_spikes.clear();
+    EvSpikeSim::fill(n_spikes.begin(), n_spikes.end(), 0u);
     EvSpikeSim::fill(current_pre_spike.begin(), current_pre_spike.end(), &(*pre_spikes.begin()));
     EvSpikeSim::fill(a.begin(), a.end(), 0.0f);
     EvSpikeSim::fill(b.begin(), b.end(), 0.0f);
-    post_spikes.clear();
-    EvSpikeSim::fill(n_spikes.begin(), n_spikes.end(), 0u);
+    EvSpikeSim::fill(current_time.begin(), current_time.end(), 0.0f);
+    EvSpikeSim::fill(synaptic_traces.begin(), synaptic_traces.end(), 0.0f);
+    EvSpikeSim::fill(neuron_traces.begin(), neuron_traces.end(), 0.0f);
 }
 
 void Layer::reset_buffer() {

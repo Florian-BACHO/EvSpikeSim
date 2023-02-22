@@ -54,6 +54,24 @@ static auto layer_get_n_spikes(std::shared_ptr<Layer> layer) {
     return py::array_t<unsigned int>(shape, stride, n_spikes.data(), py::cast(layer));
 }
 
+static auto layer_get_synaptic_traces(std::shared_ptr<Layer> layer) {
+    auto &synaptic_traces = layer->get_synaptic_traces();
+    std::vector<unsigned int> dims = {layer->get_n_neurons(), layer->get_n_inputs(), layer->get_n_synaptic_traces()};
+    auto shape = convert_dim(dims);
+    auto stride = get_strides(dims);
+
+    return py::array_t<float>(shape, stride, synaptic_traces.data(), py::cast(layer));
+}
+
+static auto layer_get_neuron_traces(std::shared_ptr<Layer> layer) {
+    auto &neuron_traces = layer->get_neuron_traces();
+    std::vector<unsigned int> dims = {layer->get_n_neurons(), layer->get_n_neuron_traces()};
+    auto shape = convert_dim(dims);
+    auto stride = get_strides(dims);
+
+    return py::array_t<float>(shape, stride, neuron_traces.data(), py::cast(layer));
+}
+
 py::module create_layers_module(py::module &parent_module) {
     py::module layer_module = parent_module.def_submodule("layers", "Layers of spiking neurons");
 
@@ -66,7 +84,9 @@ py::module create_layers_module(py::module &parent_module) {
             .def_property("weights", &layer_get_weights, &layer_set_weights)
             .def_property_readonly("post_spikes", py::cpp_function(&Layer::get_post_spikes,
                                                                    py::return_value_policy::reference_internal))
-            .def_property_readonly("n_spikes", &layer_get_n_spikes);
+            .def_property_readonly("n_spikes", &layer_get_n_spikes)
+            .def_property_readonly("synaptic_traces", &layer_get_synaptic_traces)
+            .def_property_readonly("neuron_traces", &layer_get_neuron_traces);
 
     py::class_<FCLayer, Layer, std::shared_ptr<FCLayer>>(layer_module, "FCLayer");
 

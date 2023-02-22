@@ -5,7 +5,7 @@
 #pragma once
 
 #include <cmath>
-#include <evspikesim/Layers/InferKernelBase.h>
+#include <evspikesim/Layers/InferKernelDefinitions.h>
 #include <evspikesim/Misc/ThreadPool.h>
 
 namespace EvSpikeSim {

@@ -15,5 +15,8 @@ FCLayer::FCLayer(unsigned int n_inputs,
                  float threshold,
                  Initializer &initializer,
                  unsigned int buffer_size,
+                 get_traces_tau_fct traces_tau_fct,
                  infer_kernel_fct kernel) :
-        Layer({n_neurons, n_inputs}, n_inputs, n_neurons, tau_s, threshold, initializer, buffer_size, kernel) {}
+        Layer({n_neurons, n_inputs}, n_inputs, n_neurons, tau_s, threshold, initializer, buffer_size, traces_tau_fct,
+                kernel) {}
+
