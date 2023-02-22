@@ -4,35 +4,31 @@
 
 #include <evspikesim/SpikingNetwork.h>
 #include <evspikesim/Layers/FCLayer.h>
+#include <evspikesim/Initializers/UniformInitializer.h>
+#include <evspikesim/Misc/RandomGenerator.h>
 
 namespace sim = EvSpikeSim;
 
 int main() {
     // Create network
-    auto network = sim::SpikingNetwork();
+    sim::SpikingNetwork network;
 
     // Layer parameters
-    unsigned int n_inputs = 2;
-    unsigned int n_neurons = 3;
+    unsigned int n_inputs = 3;
+    unsigned int n_neurons = 30;
     float tau_s = 0.020;
-    float threshold = tau_s * 0.2;
+    float threshold = 0.1;
+
+    // Uniform initial distribution (by default: [-1, 1])
+    sim::RandomGenerator generator;
+    sim::UniformInitializer init(generator);
 
     // Add fully-connected layer to the network
-    auto desc = sim::FCLayerDescriptor(n_inputs, n_neurons, tau_s, threshold);
-    std::shared_ptr<sim::FCLayer> layer = network.add_layer(desc);
+    std::shared_ptr<sim::FCLayer> layer = network.add_layer<sim::FCLayer>(n_inputs, n_neurons, tau_s, threshold, init);
 
-    // Set weights
-    std::vector<float> weights = {1.0, 0.3,
-                                  -0.1, 0.8,
-                                  0.5, 0.4};
-    layer->get_weights() = weights;
-
-    // Mutate synapse 1 of neuron 0 
-    layer->get_weights().get(0, 1) -= 0.1;
-
-    // Create input spikes
-    std::vector<unsigned int> input_indices = {0, 1, 1};
-    std::vector<float> input_times = {1.0, 1.5, 1.2};
+    // Input spikes
+    std::vector<unsigned int> input_indices = {0, 1, 2, 1};
+    std::vector<float> input_times = {1.0, 1.5, 1.2, 1.1};
 
     // Inference
     auto output_spikes = network.infer(input_indices, input_times);

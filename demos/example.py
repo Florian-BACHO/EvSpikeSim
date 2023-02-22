@@ -6,21 +6,15 @@ if __name__ == "__main__":
     # Create network
     network = sim.SpikingNetwork()
 
+    # Uniform initial distribution (by default: [-1, 1])
+    init = sim.initializers.UniformInitializer()
+
     # Add fully-connected layer to the network
-    desc = sim.layers.FCLayerDescriptor(n_inputs=2, n_neurons=3, tau_s=0.020, threshold=0.020 * 0.2)
-    layer = network.add_layer(desc)
-
-    # Set weights
-    layer.weights = np.array([[1.0, 0.3],
-                              [-0.1, 0.8],
-                              [0.5, 0.4]], dtype=np.float32)
-
-    # Mutate synapse 1 of neuron 0 
-    layer.weights[0, 1] -= 0.1
+    layer = network.add_fc_layer(n_inputs=3, n_neurons=30, tau_s=0.020, threshold=0.1, initializer=init)
 
     # Create input spikes
-    input_indices = np.array([0, 1, 1], dtype=np.int32)
-    input_times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
+    input_indices = np.array([0, 1, 2, 1], dtype=np.int32)
+    input_times = np.array([1.0, 1.5, 1.2, 1.1], dtype=np.float32)
 
     # Inference
     output_spikes = network.infer(input_indices, input_times)
