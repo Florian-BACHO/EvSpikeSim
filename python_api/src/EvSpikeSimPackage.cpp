@@ -2,6 +2,8 @@
 // Created by Florian Bacho on 28/01/23.
 //
 
+#define PYBIND11_DETAILED_ERROR_MESSAGES
+
 #include <sstream>
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -84,14 +86,27 @@ static void create_main_module(py::module &m) {
             .def_property_readonly("n_spikes", &SpikeArray::n_spikes);
 
     py::class_<SpikingNetwork>(m, "SpikingNetwork")
-            .def(py::init())
-            .def("add_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const FCLayerDescriptor &,
-                                                                                       unsigned int)>
-            (&SpikingNetwork::add_layer), py::arg("descriptor"), py::arg("buffer_size") = 64u)
-            .def("add_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const FCLayerDescriptor &,
-                                                                                       Initializer &,
-                                                                                       unsigned int)>
-            (&SpikingNetwork::add_layer), py::arg("descriptor"), py::arg("initializer"), py::arg("buffer_size") = 64u)
+            .def(py::init<const std::string &>(), py::arg("compile_path") = SpikingNetwork::default_compile_path)
+            .def("add_fc_layer", static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(unsigned int,
+                                                                                          unsigned int,
+                                                                                          float,
+                                                                                          float,
+                                                                                          Initializer &,
+                                                                                          unsigned int)>
+                 (&SpikingNetwork::add_layer),
+                 py::arg("n_inputs"), py::arg("n_neurons"), py::arg("tau_s"), py::arg("threshold"),
+                 py::arg("initializer"), py::arg("buffer_size") = 64u)
+            .def("add_fc_layer_from_source",
+                 static_cast<std::shared_ptr<FCLayer> (SpikingNetwork::*)(const std::string &,
+                                                                          unsigned int,
+                                                                          unsigned int,
+                                                                          float,
+                                                                          float,
+                                                                          Initializer &,
+                                                                          unsigned int)>
+                 (&SpikingNetwork::add_layer_from_source), py::arg("n_inputs"), py::arg("src_path"),
+                 py::arg("n_neurons"), py::arg("tau_s"), py::arg("threshold"),  py::arg("initializer"),
+                 py::arg("buffer_size") = 64u)
             .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const SpikeArray &)>
             (&SpikingNetwork::infer), py::arg("inputs"))
             .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const std::vector<unsigned int> &,
@@ -104,8 +119,7 @@ static void create_main_module(py::module &m) {
             .def_property_readonly("output_layer", &SpikingNetwork::get_output_layer);
 }
 
-PYBIND11_MODULE(evspikesim, m
-) {
+PYBIND11_MODULE(evspikesim, m) {
 create_main_module(m);
 create_layers_module(m);
 create_initializers_module(m);

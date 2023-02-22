@@ -8,11 +8,12 @@
 #include <vector>
 #include <iterator>
 #include <evspikesim/Spike.h>
+#include <evspikesim/Misc/ContainerTypes.h>
 
 namespace EvSpikeSim {
     class SpikeArray {
     public:
-        using const_iterator = std::vector<Spike>::const_iterator;
+        using const_iterator = EvSpikeSim::vector<Spike>::const_iterator;
 
     public:
         SpikeArray();
@@ -61,7 +62,7 @@ namespace EvSpikeSim {
     private:
         static constexpr size_t block_size = 1024;
 
-        std::vector<Spike> spikes;
+        EvSpikeSim::vector<Spike> spikes;
         bool sorted;
 
     private:

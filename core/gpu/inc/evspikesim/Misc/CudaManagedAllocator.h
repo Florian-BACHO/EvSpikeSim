@@ -11,7 +11,7 @@ namespace EvSpikeSim {
     template<typename T>
     class CudaManagedAllocator {
     public:
-        using size_type = size_t;
+        using size_type = std::size_t;
         using pointer = T *;
         using const_pointer = const T *;
         using value_type = T;
@@ -26,7 +26,7 @@ namespace EvSpikeSim {
         CudaManagedAllocator(const CudaManagedAllocator &other) = default;
         ~CudaManagedAllocator() = default;
 
-        pointer allocate(size_type n, const void *hint = 0) {
+        pointer allocate(size_type n, const void *hint = 0) const {
             (void)hint; // Unused
             pointer ptr;
 
@@ -34,10 +34,22 @@ namespace EvSpikeSim {
             return ptr;
         }
 
-        void deallocate(pointer p, size_type n) {
+        void deallocate(pointer p, size_type n) const {
             (void)n; // Unused
 
             cudaFree(p);
+        }
+
+        bool operator==(const CudaManagedAllocator<T> &other) const {
+            (void) other;
+
+            return true;
+        }
+
+        bool operator!=(const CudaManagedAllocator<T> &other) const {
+            (void) other;
+
+            return false;
         }
     };
 }

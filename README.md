@@ -42,7 +42,7 @@ Two implementations are available: one for CPUs and one for NVIDIA GPUs.
 
 #### Dependencies
 
-- g++ >= 7
+- g++ >= 9
 - cmake >= 3.14
 
 #### Build and install C++ library
