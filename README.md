@@ -2,35 +2,25 @@
 
 ## Project Description
 EvSpikeSim is an experimental event-based Spiking Neural Networks (SNNs) simulator written in C++ for high performance and interfaced with Python.
-This project aims to provide fast and accurate simulations of sparse SNNs for the development of neuromorphic training algorithms.
+This project aims to provide fast and accurate simulations of sparse SNNs for the development of training algorithms compatible with neuromorphic hardware.
 
 ## Implemented Features
 
 - Fully-connected layers of Leaky Integrate-and-Fire (LIF) neurons
+- Eligibility traces
 - Simple Python3 interface compatible with numpy arrays
 - Multi-theading on CPU
 - NVIDIA GPU support
 
-## Coming Features
-
-- Local gradients
-- Spike Time-Dependent Plasticity (STDP)
-- Error-Driven Learning
-- Direct Feedback Alignement (DFA)
-- Convolutional Spiking Layers
-
 ## Neuron Model
 
-The neuron model implemented in this simulator is the Current-Based Leaky Integrate-and-Fire (CuBa LIF) neuron. Its defined by the following system of ordinary differential equations:
+The neuron model implemented in this simulator is the Current-Based Leaky Integrate-and-Fire (CuBa LIF) neuron. The membrane potential of each neuron $i$ is defined as:
 ```math
-\left\{\begin{matrix}
-\frac{du_i(t))}{dt}=-\frac{u_i(t))}{\tau} + g_i(t) - \underbrace{\vartheta \delta\left ( u(t) - \vartheta \right )}_{\text{Reset}}\\
-\frac{dg_i(t))}{dt}=-\frac{g_i(t))}{\tau_s} + \underbrace{\sum_{j} w_{i,j} \sum_{t_j} \delta\left ( t_j - t \right)}_{\text{Pre-synaptic spikes}}
-\end{matrix}\right.
+u_i(t) = \sum_{j} w_{i,j} \sum_{t_j} \underbrace{\left[\exp\left(\frac{t_j - t}{\tau}\right) - \exp\left(\frac{t_j - t}{\tau_s}\right) \right]}_{\text{Post-Synaptic Potential}} - \underbrace{\vartheta \sum_{t_i} \exp\left(\frac{t_i - t}{\tau}\right)}_{\text{Reset}}
 ```
-where $g_i(t)$ and $u_i(t)$ are the synaptic current and membrane potential of the post-synaptic neuron $i$, $\tau_s$ and $\tau$ are the synaptic and membrane time constants, $w_{i,j}$ is the weight between the post-synaptic neuron $i$ and the pre-synaptic neuron $j$, $t_j$ is a pre-synaptic spike timing, $\vartheta$ is the threshold of the neuron and $\delta(x)$ is the Dirac Delta function.
+where $\tau_s$ and $\tau$ are respectively the synaptic and membrane time constants, $w_{i,j}$ is the weight between the post-synaptic neuron $i$ and the pre-synaptic neuron $j$, $t_j < t$ is a pre-synaptic pre-synaptic spike timings received at synapse $j$, $t_i < t$ is a post-synaptic spike timing and $\vartheta$ is the threshold.
 
-When the membrane potential reaches its threshold, i.e. $u_i(t)=\vartheta$, a post-synaptic spike is emitted by the neuron $i$ at time $t$.
+Pre-synaptic spikes are integrated over time with a double-exponential Post-Synaptic Potential kernel. When the membrane potential reaches its threshold, i.e. $u_i(t)=\vartheta$, a post-synaptic spike is emitted by the neuron $i$ and the membrane potential is reset to zero.
 
 In this simulator, **membrane time constants are constrained to 2x the synaptic time constants**, i.e. $\tau = 2 \tau_s$. This allows us to isolate a closed-form solution for the spike time and achieve fast event-based inference without the use of numerical solvers. See ref [1, 2] for more details.
 
@@ -123,7 +113,7 @@ CUDAHOME=/path/to/cuda/ python3 setup.py install --gpu
 
 For CPU, the pthread library needs to be linked to your project:
 ```
-g++ foo.cpp -std=c++17 -levspikesim -lpthread
+g++ foo.cpp -std=c++17 -levspikesim
 ```
 Compilation requires c++17.
 
@@ -137,39 +127,35 @@ Compilation requires c++17.
 
 #### Example
 
-Here is a C++ example of a (very) small fully-connected SNN in EvSpikeSim:
+Here is a C++ example of a small fully-connected SNN in EvSpikeSim:
 ```cpp
 #include <evspikesim/SpikingNetwork.h>
 #include <evspikesim/Layers/FCLayer.h>
+#include <evspikesim/Initializers/UniformInitializer.h>
+#include <evspikesim/Misc/RandomGenerator.h>
 
 namespace sim = EvSpikeSim;
 
 int main() {
     // Create network
-    auto network = sim::SpikingNetwork();
+    sim::SpikingNetwork network;
 
     // Layer parameters
-    unsigned int n_inputs = 2;
-    unsigned int n_neurons = 3;
+    unsigned int n_inputs = 3;
+    unsigned int n_neurons = 30;
     float tau_s = 0.020;
-    float threshold = tau_s * 0.2;
+    float threshold = 0.1;
+
+    // Uniform initial distribution (by default: [-1, 1])
+    sim::RandomGenerator generator;
+    sim::UniformInitializer init(generator);
 
     // Add fully-connected layer to the network
-    auto desc = sim::FCLayerDescriptor(n_inputs, n_neurons, tau_s, threshold);
-    std::shared_ptr<sim::FCLayer> layer = network.add_layer(desc);
+    std::shared_ptr<sim::FCLayer> layer = network.add_layer<sim::FCLayer>(n_inputs, n_neurons, tau_s, threshold, init);
 
-    // Set weights
-    std::vector<float> weights = {1.0, 0.3,
-                                  -0.1, 0.8,
-                                  0.5, 0.4};
-    layer->get_weights() = weights;
-
-    // Mutate synapse 1 of neuron 0 
-    layer->get_weights().get(0, 1) -= 0.1;
-
-    // Create input spikes
-    std::vector<unsigned int> input_indices = {0, 1, 1};
-    std::vector<float> input_times = {1.0, 1.5, 1.2};
+    // Input spikes
+    std::vector<unsigned int> input_indices = {0, 1, 2, 1};
+    std::vector<float> input_times = {1.0, 1.5, 1.2, 1.1};
 
     // Inference
     auto output_spikes = network.infer(input_indices, input_times);
@@ -188,7 +174,7 @@ This code can compile with either the CPU or GPU versions of EvSpikeSim.
 
 ### Python API
 
-Here is a Python3 example of a (very) small fully-connected SNN in EvSpikeSim:
+Here is a Python3 example of a small fully-connected SNN in EvSpikeSim:
 ```python
 import evspikesim as sim
 import numpy as np
@@ -198,21 +184,15 @@ if __name__ == "__main__":
     # Create network
     network = sim.SpikingNetwork()
 
+    # Uniform initial distribution (by default: [-1, 1])
+    init = sim.initializers.UniformInitializer()
+
     # Add fully-connected layer to the network
-    desc = sim.layers.FCLayerDescriptor(n_inputs=2, n_neurons=3, tau_s=0.020, threshold=0.020 * 0.2)
-    layer = network.add_layer(desc)
-
-    # Set weights
-    layer.weights = np.array([[1.0, 0.3],
-                              [-0.1, 0.8],
-                              [0.5, 0.4]], dtype=np.float32)
-
-    # Mutate synapse 1 of neuron 0 
-    layer.weights[0, 1] -= 0.1
+    layer = network.add_fc_layer(n_inputs=3, n_neurons=30, tau_s=0.020, threshold=0.1, initializer=init)
 
     # Create input spikes
-    input_indices = np.array([0, 1, 1], dtype=np.int32)
-    input_times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
+    input_indices = np.array([0, 1, 2, 1], dtype=np.int32)
+    input_times = np.array([1.0, 1.5, 1.2, 1.1], dtype=np.float32)
 
     # Inference
     output_spikes = network.infer(input_indices, input_times)
