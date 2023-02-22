@@ -25,7 +25,9 @@ jobs:
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      run: make tests -j
+      run: | 
+        make tests -j
+        sudo make install
 
     - name: Test
       working-directory: ${{github.workspace}}/build/tests
