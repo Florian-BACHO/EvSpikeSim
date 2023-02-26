@@ -8,6 +8,8 @@
 #include <evspikesim/Layers/InferKernelDefinitions.h>
 #include <evspikesim/Misc/ThreadPool.h>
 
+#if !defined(DOXYGEN_SHOULD_SKIP_THIS) // Disable documentation and avoids duplicate warning when building API documentation with exhale
+
 namespace EvSpikeSim {
     void infer_range(KernelData &kernel_data, const Spike *end_pre_spikes,
                      unsigned int neuron_start, unsigned int neuron_end,
@@ -17,6 +19,15 @@ namespace EvSpikeSim {
     }
 }
 
+/**
+ * Inference kernel function.
+ *
+ * @param kernel_data The data required by the inference kernel.
+ * @param end_pre_spikes The end of the pre-synaptic spikes.
+ * @param first_call Must be true if this is the first call to the kernel during the inference, otherwise false.
+ * @param thread_pool_ptr The pointer to the global thread pool if the implementation is for CPU. For GPU, nullptr is
+ * passed and the argument is unused.
+ */
 extern "C" void infer_kernel(EvSpikeSim::KernelData &kernel_data, const EvSpikeSim::Spike *end_pre_spikes,
                              bool first_call, void *thread_pool_ptr) {
     EvSpikeSim::ThreadPool *thread_pool = reinterpret_cast<EvSpikeSim::ThreadPool *>(thread_pool_ptr);
@@ -32,3 +43,5 @@ extern "C" void infer_kernel(EvSpikeSim::KernelData &kernel_data, const EvSpikeS
     for (auto &it : tasks)
         it.get();
 }
+
+#endif

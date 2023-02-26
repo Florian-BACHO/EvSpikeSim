@@ -7,6 +7,13 @@
 #include <evspikesim/Misc/GPUDevice.h>
 
 namespace EvSpikeSim {
+    /**
+     * GPU kernel used by fill.
+     * @tparam T Type of the value to fill.
+     * @param ptr The array to fill.
+     * @param n The size of the array to fill.
+     * @param fill_value The value to fill.
+     */
     template<typename T>
     __global__ void fill_kernel(T *ptr, std::size_t n, T fill_value) {
         auto idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -15,6 +22,14 @@ namespace EvSpikeSim {
             ptr[idx] = fill_value;
     }
 
+    /**
+     * Fill an EvSpikeSim container with the given value.
+     * @tparam ForwardIt The type of the iterators.
+     * @tparam T The type of the value.
+     * @param begin The begin iterator.
+     * @param end The end iterator.
+     * @param fill_value The value to fill.
+     */
     template<class ForwardIt, class T>
     void fill(ForwardIt begin, ForwardIt end, const T &fill_value) {
         T *begin_ptr = &(*begin);
