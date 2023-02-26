@@ -18,7 +18,7 @@ build:
         make -j
       - cd python_api &&
         pip install -r requirements.txt &&
-        sudo python setup.py install &&
+        python setup.py install &&
         python --version &&
         python -m "import evspikesim"
 
