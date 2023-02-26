@@ -10,7 +10,7 @@ build:
     - cmake
 
   jobs:
-    pre_build:
+    post_install:
       - echo "Installing EvSpikeSim"
       - mkdir build &&
         cd build &&
@@ -18,7 +18,9 @@ build:
         make -j
       - cd python_api &&
         pip install -r requirements.txt &&
-        python setup.py install
+        python setup.py install &&
+        python --version &&
+        python -m "import evspikesim"
 
 python:
   install:
