@@ -12,7 +12,8 @@ build:
   jobs:
     pre_build:
       - echo "Installing EvSpikeSim"
-      - mkdir build && cd build && pwd && ls -l &&
+      - mkdir build &&
+        cd build &&
         cmake ../core -DNO_TEST=ON &&
         make -j
       - cd python_api &&
