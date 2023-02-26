@@ -65,9 +65,8 @@ exhale_args = {
        
        .. note::
        
-        The file hierarchy available bellow is representative of the source hierarchy and does not respect the final
-        structure of headers in the installed library. Moreover, some features described bellow may be in use in the GPU 
-        version and not available in the CPU version (and inversely).
+        Some features described bellow may be in use in the GPU version and not available in the CPU version 
+        (and inversely).
        
     '''),
     "doxygenStripFromPath": "..",

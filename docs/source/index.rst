@@ -6,17 +6,6 @@ EvSpikeSim (Experimental)
     This project is under active development.
     Feature requests and bug reports are more than welcome.
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Table of Contents:
-
-   self
-   installation
-   getting_started
-   advanced_guide
-   cpp_api/library_root
-   python_api
-
 Project Description
 ===================
 
@@ -46,3 +35,16 @@ Pre-synaptic spikes are integrated over time with a double-exponential Post-Syna
 
 .. warning::
     In EvSpikeSim, membrane time constants are constrained to twice the synaptic time constants, i.e. :math:`\tau = 2 \tau_s`. This allows us to isolate a closed-form solution for the spike time and achieve fast event-based inference without the use of numerical solvers.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Table of Contents:
+
+   self
+   installation
+   getting_started
+   advanced_guide
+   docker
+   cpp_api/library_root
+   python_api
+   unit_tests
