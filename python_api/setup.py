@@ -133,8 +133,8 @@ def setup_cpu(version):
 
 
 if __name__ == "__main__":
-    file = open("../version.txt")
-    version = file.read()
+    #file = open("../version.txt")
+    version = "0.5.0" #file.read()
 
     if "--gpu" in sys.argv:
         sys.argv.remove("--gpu")
