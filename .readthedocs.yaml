@@ -12,13 +12,13 @@ build:
   jobs:
     pre_build:
       - echo "Installing EvSpikeSim"
-      - cd .. && \
-        mkdir build && \
-        cd build && \
-        cmake ../core -DNO_TEST=ON && \
+      - cd .. &&
+        mkdir build &&
+        cd build &&
+        cmake ../core -DNO_TEST=ON &&
         make -j
-      - cd ../python_api && \
-        pip3 install requirements.txt && \
+      - cd ../python_api &&
+        pip3 install requirements.txt &&
         python3 setup.py install --user
 
 python:
