@@ -246,7 +246,7 @@ static void create_main_module(py::module &m) {
             .def("infer", static_cast<const SpikeArray &(SpikingNetwork::*)(const SpikeArray &)>
                  (&SpikingNetwork::infer), py::arg("inputs"),
                  "Infer the entire SNN using the given input spike array.\n\n"
-                 ":param inputs: Input spikes.\n"
+                 ":param inputs: Sorted input spikes.\n"
                  ":type inputs: SpikeArray.\n"
                  ":return: The output spike array.\n"
                  ":rtype: SpikeArray\n")

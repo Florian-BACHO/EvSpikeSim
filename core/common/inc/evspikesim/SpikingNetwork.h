@@ -79,9 +79,10 @@ namespace EvSpikeSim {
         }
 
         /**
-         * Infer the entire SNN using the given input spike array.
-         * @param pre_spikes Input spikes.
+         * Infer the entire SNN using the given sorteed input spike array.
+         * @param pre_spikes Sorted input spikes.
          * @return Constant reference on the output spike array.
+         * @throw std::runtime_error if pre_spikes are not sorted.
          */
         const SpikeArray &infer(const SpikeArray &pre_spikes);
 
