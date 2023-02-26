@@ -8,7 +8,7 @@ build:
   jobs:
     pre_build:
       - echo "Installing EvSpikeSim"
-      - apt-get install g++ cmake
+      - sudo apt-get install g++ cmake
       - mkdir build
       - cd build
       - cmake ../core -DNO_TEST=ON
@@ -16,7 +16,7 @@ build:
       - make install
       - cd ../python_api
       - pip3 install requirements.txt
-      - python3 setup.py install
+      - python3 setup.py install --user
 
 python:
   install:
