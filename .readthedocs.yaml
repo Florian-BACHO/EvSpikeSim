@@ -12,6 +12,7 @@ build:
   jobs:
     pre_build:
       - echo "Installing EvSpikeSim"
+      - pwd && ls -l
       - cd .. &&
         mkdir build &&
         cd build &&
