@@ -16,7 +16,7 @@ build:
         cmake ../core -DNO_TEST=ON &&
         make -j
       - cd python_api &&
-        pip3 install requirements.txt &&
+        pip3 install -r requirements.txt &&
         python3 setup.py install --user
 
 python:
