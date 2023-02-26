@@ -8,6 +8,7 @@ build:
   jobs:
     pre_build:
       - echo "Installing EvSpikeSim"
+      - apt-get install g++ cmake
       - mkdir build
       - cd build
       - cmake ../core -DNO_TEST=ON
