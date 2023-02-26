@@ -5,10 +5,13 @@ build:
   tools:
     python: "3.9"
 
+  apt_packages:
+    - g++
+    - cmake
+
   jobs:
     pre_build:
       - echo "Installing EvSpikeSim"
-      - sudo apt-get install g++ cmake
       - mkdir build
       - cd build
       - cmake ../core -DNO_TEST=ON
