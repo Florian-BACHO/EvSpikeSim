@@ -16,9 +16,9 @@ build:
         cd build &&
         cmake ../core -DNO_TEST=ON &&
         make -j
-      - pip install -r python_api/requirements.txt &&
-        pip install python_api/. &&
-        python -m "import evspikesim"
+      - cd python_api &&
+      - pip install -r requirements.txt &&
+        python setup.py build --build-lib=../docs/source
 
 python:
   install:
