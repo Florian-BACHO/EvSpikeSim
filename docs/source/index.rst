@@ -43,7 +43,6 @@ Pre-synaptic spikes are integrated over time with a double-exponential Post-Syna
    self
    installation
    getting_started
-   advanced_guide
    docker
    cpp_api/library_root
    python_api
