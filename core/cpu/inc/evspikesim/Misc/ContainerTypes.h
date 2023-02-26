@@ -6,24 +6,20 @@
 
 #include <memory>
 #include <vector>
-#include <evspikesim/Misc/NDArray.h>
 
 namespace EvSpikeSim {
     template <typename T>
-    using vector = std::vector<T>;
+    using vector = std::vector<T>; /**< Type definition of the EvSpikeSim vector */
 
     template <typename T>
-    using ndarray = NDArray<T>;
+    using unique_ptr = std::unique_ptr<T>; /**< Type definition of the EvSpikeSim unique pointer */
 
     template <typename T>
-    using unique_ptr = std::unique_ptr<T>;
+    using shared_ptr = std::unique_ptr<T>; /**< Type definition of the EvSpikeSim shared pointer */
 
     template <typename T>
-    using shared_ptr = std::unique_ptr<T>;
+    auto make_unique = std::make_unique<T>; /**< Make unique function */
 
     template <typename T>
-    auto make_unique = std::make_unique<T>;
-
-    template <typename T>
-    auto make_shared = std::make_shared<T>;
+    auto make_shared = std::make_shared<T>; /**< Make shared function */
 }

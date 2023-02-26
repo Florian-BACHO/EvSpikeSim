@@ -71,8 +71,8 @@ namespace EvSpikeSim {
          * @tparam T1 The type of the first index in the loop. Should be a signed or unsigned integer.
          * @tparam T2 The type of the index after the last index in the loop. Should be a signed or unsigned integer. If T1 is not the same as T2, a common type will be automatically inferred.
          * @tparam T The common type of T1 and T2.
-         * @param first_index The first index in the loop.
-         * @param index_after_last The index after the last index in the loop. The loop will iterate from first_index to (index_after_last - 1) inclusive. In other words, it will be equivalent to "for (T i = first_index; i < index_after_last; ++i)". Note that if index_after_last == first_index, no blocks will be submitted.
+         * @param first_index_ The first index in the loop.
+         * @param index_after_last_ The index after the last index in the loop. The loop will iterate from first_index to (index_after_last - 1) inclusive. In other words, it will be equivalent to "for (T i = first_index; i < index_after_last; ++i)". Note that if index_after_last == first_index, no blocks will be submitted.
          * @param loop The function to loop through. Will be called once per block. Should take exactly two arguments: the first index in the block and the index after the last index in the block. loop(start, end) should typically involve a loop of the form "for (T i = start; i < end; ++i)".
          * @param num_blocks The maximum number of blocks to split the loop into. The default is to use the number of threads in the pool.
          */

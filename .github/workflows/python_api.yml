@@ -1,4 +1,4 @@
-name: Python API
+name: Python API Tests
     
 on:
   pull_request:
