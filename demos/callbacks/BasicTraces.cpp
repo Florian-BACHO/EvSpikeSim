@@ -15,7 +15,7 @@ extern "C" std::pair<EvSpikeSim::vector<float>, EvSpikeSim::vector<float>> get_t
             {}}; // Neuron traces time constants
 }
 
-CALLBACK float EvSpikeSim::on_pre(const EvSpikeSim::Spike &pre_spike, float weight, float *neuron_traces,
+CALLBACK float EvSpikeSim::on_pre(const EvSpikeSim::Spike &pre_spike, float &weight, float *neuron_traces,
                                   float *synaptic_traces, unsigned int n_synapses) {
     (void) pre_spike;
     (void) neuron_traces;
@@ -26,7 +26,9 @@ CALLBACK float EvSpikeSim::on_pre(const EvSpikeSim::Spike &pre_spike, float weig
     return weight;
 }
 
-CALLBACK void EvSpikeSim::on_post(float *neuron_traces, float *synaptic_traces, unsigned int n_synapses) {
+CALLBACK void EvSpikeSim::on_post(float *neuron_weights, float *neuron_traces, float *synaptic_traces,
+                                  unsigned int n_synapses) {
+    (void) neuron_weights;
     (void) neuron_traces;
 
     // Accumulates synaptic traces at post-synaptic spikes

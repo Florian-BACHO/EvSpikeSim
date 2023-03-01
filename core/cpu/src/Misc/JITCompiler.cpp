@@ -8,7 +8,7 @@
 
 using namespace EvSpikeSim;
 
-static constexpr char compiler_cmd[] = "g++ -fPIC -shared -std=c++17 -o";
+static constexpr char compiler_cmd[] = "g++ -fPIC -shared -std=c++17 -o ";
 
 void JITCompiler::compile(const std::string &source_file, const std::string &dlib_path) {
     std::string cmd = compiler_cmd;

@@ -5,6 +5,8 @@
 #pragma once
 
 #include <vector>
+#include <memory>
+#include <functional>
 #include <evspikesim/Misc/CudaManagedAllocator.h>
 
 namespace EvSpikeSim {

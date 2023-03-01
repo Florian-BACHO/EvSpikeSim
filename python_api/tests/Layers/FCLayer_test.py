@@ -63,7 +63,6 @@ class TestFCLayer(unittest.TestCase):
         inputs = sim.SpikeArray(indices, times)
         inputs.sort()
 
-
         targets_n_spikes = np.array([3, 4, 3])
         targets_indices = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2], dtype=np.uint32)
         targets_times = np.array([1.0047829, 1.0112512, 1.0215546, 1.2063813, 1.2163547, 1.506313, 1.5162327,
@@ -94,7 +93,6 @@ class TestFCLayer(unittest.TestCase):
         times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
         inputs = sim.SpikeArray(indices, times)
         inputs.sort()
-
 
         targets_n_spikes = np.array([3, 4, 3])
         targets_indices = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2], dtype=np.uint32)
@@ -127,7 +125,6 @@ class TestFCLayer(unittest.TestCase):
         inputs = sim.SpikeArray(indices, times)
         inputs.sort()
 
-
         targets_n_spikes = np.array([3, 4, 3])
         targets_indices = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2], dtype=np.uint32)
         targets_times = np.array([1.0047829, 1.0112512, 1.0215546, 1.2063813, 1.2163547, 1.506313, 1.5162327,
@@ -159,7 +156,6 @@ class TestFCLayer(unittest.TestCase):
         times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
         inputs = sim.SpikeArray(indices, times)
         inputs.sort()
-
 
         targets_n_spikes = np.array([3, 4, 3])
         targets_indices = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2], dtype=np.uint32)
@@ -232,3 +228,41 @@ class TestFCLayer(unittest.TestCase):
 
         self.assertTrue(isinstance(traces, np.ndarray))
         self.assertTrue(np.allclose(traces, targets_traces))
+
+    def test_stdp_callbacks(self):
+        init_weights = np.array([[0.0, 0.0, 0.0],
+                                 [0.0, 0.5, 0.0]], dtype=np.float32)
+
+        indices = np.array([1, 0, 2, 1], dtype=np.uint32)
+        times = np.array([0.0, 0.015, 0.100, 1.0], dtype=np.float32)
+
+        true_final_weights = np.array([[0.0, 0.0, 0.0],
+                                       [-0.00094981049, 0.501448, -0.00011343869]], dtype=np.float32)
+
+        net = sim.SpikingNetwork()
+        layer = net.add_fc_layer_from_source("../../demos/callbacks/STDP.cpp", 3, 2, 0.020, 0.1,
+                                             ConstantInitializer(), buffer_size=64)
+        layer.weights = init_weights
+
+        net.infer(indices, times)
+
+        self.assertTrue(np.allclose(layer.weights, true_final_weights))
+
+    def test_stdp_callbacks_undersized_buffer(self):
+        init_weights = np.array([[0.0, 0.0, 0.0],
+                                 [0.0, 0.5, 0.0]], dtype=np.float32)
+
+        indices = np.array([1, 0, 2, 1], dtype=np.uint32)
+        times = np.array([0.0, 0.015, 0.100, 1.0], dtype=np.float32)
+
+        true_final_weights = np.array([[0.0, 0.0, 0.0],
+                                       [-0.00094981049, 0.501448, -0.00011343869]], dtype=np.float32)
+
+        net = sim.SpikingNetwork()
+        layer = net.add_fc_layer_from_source("../../demos/callbacks/STDP.cpp", 3, 2, 0.020, 0.1,
+                                             ConstantInitializer(), buffer_size=1)
+        layer.weights = init_weights
+
+        net.infer(indices, times)
+
+        self.assertTrue(np.allclose(layer.weights, true_final_weights))

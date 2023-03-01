@@ -252,3 +252,55 @@ TEST(FCLayerTest, BasicTracesCallbackUndersizedBuffer) {
     for (auto i = 0; i < 6; i++)
         ASSERT_FLOAT_EQ(layer->get_synaptic_traces()[i * 2 + 1], true_synaptic_traces[i]);
 }
+
+TEST(FCLayerTest, STDPCallback) {
+    auto initializer = ConstantInitializer();
+    SpikingNetwork network = SpikingNetwork();
+    unsigned int buffer_size = 64;
+    auto layer = network.add_layer_from_source<FCLayer>("../demos/callbacks/STDP.cpp", 3, 2, 0.020, 0.1,
+                                                        initializer, buffer_size);
+    SpikeArray input_spikes = SpikeArray();
+    std::vector<float> init_weights = {0.0, 0.0, 0.0,
+                                       0.0, 0.5, 0.0};
+    auto &weights = layer->get_weights();
+    std::vector<float> true_final_weights = {0.0, 0.0, 0.0,
+                                             -0.00094981049, 0.501448, -0.00011343869};
+
+    weights = init_weights;
+
+    input_spikes.add(1, 0.0); // Potentiation
+    input_spikes.add(0, 0.015); // Depression
+    input_spikes.add(2, 0.100); // Depression (weak)
+    input_spikes.add(1, 1.0); // To test timing of the new spike
+    input_spikes.sort();
+
+    layer->infer(input_spikes);
+    for (auto i = 0; i < 6; i++)
+        ASSERT_FLOAT_EQ(weights.get_values()[i], true_final_weights[i]);
+}
+
+TEST(FCLayerTest, STDPCallbackUndersizedBuffer) {
+    auto initializer = ConstantInitializer();
+    SpikingNetwork network = SpikingNetwork();
+    unsigned int buffer_size = 1;
+    auto layer = network.add_layer_from_source<FCLayer>("../demos/callbacks/STDP.cpp", 3, 2, 0.020, 0.1,
+                                                        initializer, buffer_size);
+    SpikeArray input_spikes = SpikeArray();
+    std::vector<float> init_weights = {0.0, 0.0, 0.0,
+                                       0.0, 0.5, 0.0};
+    auto &weights = layer->get_weights();
+    std::vector<float> true_final_weights = {0.0, 0.0, 0.0,
+                                             -0.00094981049, 0.501448, -0.00011343869};
+
+    weights = init_weights;
+
+    input_spikes.add(1, 0.0); // Potentiation
+    input_spikes.add(0, 0.015); // Depression
+    input_spikes.add(2, 0.100); // Depression (weak)
+    input_spikes.add(1, 1.0); // To test timing of the new spike
+    input_spikes.sort();
+
+    layer->infer(input_spikes);
+    for (auto i = 0; i < 6; i++)
+        ASSERT_FLOAT_EQ(weights.get_values()[i], true_final_weights[i]);
+}

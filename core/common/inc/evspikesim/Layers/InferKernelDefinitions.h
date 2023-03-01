@@ -59,7 +59,7 @@ namespace EvSpikeSim {
      * @return The post-synaptic spike timing.
      */
     INLINE DEVICE float compute_spike_time(float inside_log, float tau) {
-        return tau * std::log(inside_log);
+        return tau * log(inside_log);
     }
 
     /**
@@ -159,7 +159,8 @@ namespace EvSpikeSim {
 
             // Valid spike
             update_time(kernel_data, neuron_idx, spike_time);
-            on_post(kernel_data.neuron_traces + kernel_data.n_neuron_traces * neuron_idx,
+            on_post(kernel_data.weights + neuron_idx * kernel_data.n_inputs,
+                    kernel_data.neuron_traces + kernel_data.n_neuron_traces * neuron_idx,
                     kernel_data.synaptic_traces + kernel_data.n_synaptic_traces * kernel_data.n_inputs * neuron_idx,
                     kernel_data.n_inputs);
             kernel_data.n_spikes[neuron_idx]++;

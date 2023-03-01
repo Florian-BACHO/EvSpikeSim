@@ -20,7 +20,7 @@ extern "C" void infer_kernel(EvSpikeSim::KernelData &kernel_data, const EvSpikeS
                              bool first_call, void *unused) {
     (void)unused;
     cudaDeviceSynchronize();
-    EvSpikeSim::kernel_gpu << < 1, kernel_data.n_neurons >> > (kernel_data, end_pre_spikes, first_call);
+    EvSpikeSim::kernel_gpu<<<1, kernel_data.n_neurons>>>(kernel_data, end_pre_spikes, first_call);
     cudaDeviceSynchronize();
 }
 

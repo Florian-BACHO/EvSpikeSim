@@ -9,10 +9,11 @@ extern "C" std::pair<EvSpikeSim::vector<float>, EvSpikeSim::vector<float>> get_t
     (void) tau_s;
     (void) tau;
 
-    return {{}, {}}; // No trace
+    return {{},
+            {}}; // No trace
 }
 
-CALLBACK float EvSpikeSim::on_pre(const EvSpikeSim::Spike &pre_spike, float weight, float *neuron_traces,
+CALLBACK float EvSpikeSim::on_pre(const EvSpikeSim::Spike &pre_spike, float &weight, float *neuron_traces,
                                   float *synaptic_traces, unsigned int n_synapses) {
     (void) pre_spike;
     (void) neuron_traces;
@@ -22,7 +23,9 @@ CALLBACK float EvSpikeSim::on_pre(const EvSpikeSim::Spike &pre_spike, float weig
     return weight;
 }
 
-CALLBACK void EvSpikeSim::on_post(float *neuron_traces, float *synaptic_traces, unsigned int n_synapses) {
+CALLBACK void EvSpikeSim::on_post(float *neuron_weights, float *neuron_traces, float *synaptic_traces,
+                                  unsigned int n_synapses) {
+    (void) neuron_weights;
     (void) neuron_traces;
     (void) synaptic_traces;
     (void) n_synapses;

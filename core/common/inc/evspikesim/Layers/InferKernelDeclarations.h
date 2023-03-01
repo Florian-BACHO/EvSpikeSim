@@ -45,52 +45,33 @@ namespace EvSpikeSim {
 #endif
 
     /**
-     * The signature of the extern C get_traces_tau function.
-     */
-    using get_traces_tau_fct = std::pair<EvSpikeSim::vector<float>, EvSpikeSim::vector<float>> (*)(float, float);
-    /**
-     * The signature of the extern C infer_kernel function.
-     */
-    using infer_kernel_fct = void (*)(KernelData &, const Spike *, bool, void *);
-
-    // Symbol definitions
-    /**
-     * Symbol of the extern C get_traces_tau function.
-     */
-    static constexpr char get_traces_tau_symbol[] = "get_traces_tau";
-    /**
-     * Symbol of the extern C infer_kernel function.
-     */
-    static constexpr char infer_kernel_symbol[] = "infer_kernel";
-
-
-    // Callback declarations
-    /**
      * Callback called at each pre-synaptic event during the inference of a neuron.
      *
      * @param pre_spike The pre-synaptic spike that caused the event.
-     * @param weight The weight of the connection between the post-synaptic neuron and the pre-synaptic neuron that
-     * caused the event.
+     * @param weight Mutable referencee on the weight of the connection between the post-synaptic neuron and the
+     * pre-synaptic neuron that caused the event.
      * @param neuron_traces The traces of the neuron that received the spike. The size of the array corresponds to the
      * number of neuron traces time constants returned by get_traces_tau.
      * @param synaptic_traces The traces of the synapse that received the spike. The size of the array corresponds to
      * the number of synaptic traces time constants returned by get_traces_tau.
      * @param n_synapses The number of synapses of the neuron.
-     * @return The weight of the synapse to be integrated into the membrane potential.
+     * @return The value to be integrated into the membrane potential (typically the weight received as argument).
      */
-    CALLBACK float on_pre(const Spike &pre_spike, float weight, float *neuron_traces, float *synaptic_traces,
+    CALLBACK float on_pre(const Spike &pre_spike, float &weight, float *neuron_traces, float *synaptic_traces,
                           unsigned int n_synapses);
 
     /**
      * Callback called at each post-synaptic event during the inference of a neuron.
      *
+     * @param neuron_weights Pointer on the weights of the neuron that fired the spike.
      * @param neuron_traces The traces of the neuron that fired the spike. The size of the array corresponds to the
      * number of neuron traces time constants returned by get_traces_tau.
      * @param synaptic_traces The traces of all synapse of the neuron that fired the spike. The size of the array
      * corresponds to n_synapses times the number of synaptic traces time constants returned by get_traces_tau.
      * @param n_synapses The number of synapses of the neuron that fired the spike.
      */
-    CALLBACK void on_post(float *neuron_traces, float *synaptic_traces, unsigned int n_synapses);
+    CALLBACK void on_post(float *neuron_weights, float *neuron_traces, float *synaptic_traces,
+                          unsigned int n_synapses);
 }
 
 // Suppress return-type-c-linkage warning as we know that only C++ code will use these functions
@@ -125,3 +106,24 @@ extern "C" void infer_kernel(EvSpikeSim::KernelData &kernel_data, const EvSpikeS
 #ifndef __CUDACC__
 #pragma GCC diagnostic pop
 #endif
+
+namespace EvSpikeSim {
+    /**
+     * The signature of the extern C get_traces_tau function.
+     */
+    using get_traces_tau_fct = decltype(&get_traces_tau);
+    /**
+     * The signature of the extern C infer_kernel function.
+     */
+    using infer_kernel_fct = decltype(&infer_kernel);
+
+    // Symbol definitions
+    /**
+     * Symbol of the extern C get_traces_tau function.
+     */
+    static constexpr char get_traces_tau_symbol[] = "get_traces_tau";
+    /**
+     * Symbol of the extern C infer_kernel function.
+     */
+    static constexpr char infer_kernel_symbol[] = "infer_kernel";
+}

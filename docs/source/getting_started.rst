@@ -299,6 +299,17 @@ This has the same effect as the previous code but it requires indexing using the
     ``EvSpikeSim::vector`` is a standard ``std::vector``. In the GPU implementation, this is a ``std::vector``
     that uses a cuda managed pointer.
 
+New weights can also be set with the = operator:
+
+.. code-block:: cpp
+
+    sim::NDArray<float> &weights = layer->get_weights(); // Get the weight matrix of the layer.
+    std::vector<float> new_weights = {1.0, 0.2, -1.0, ..., 0.5};
+    weights = new_weights;
+
+.. note::
+    The vector of new weights **must** match the size of the current weights.
+
 Run the SNN
 -----------
 
