@@ -20,7 +20,7 @@ set(SRC_LIST
 
 add_library(evspikesim STATIC ${SRC_LIST})
 
-target_link_libraries(evspikesim pthread)
+target_link_libraries(evspikesim pthread dl)
 
 set_target_properties(evspikesim PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"

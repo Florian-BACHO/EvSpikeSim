@@ -67,6 +67,8 @@ class MSELoss:
 if __name__ == "__main__":
     print("Loading dataset.")
 
+    sim.random.set_seed(42)
+
     dataset = MNIST(MNIST_PATH)
     train_x, train_y = dataset.load_training()
     test_x, test_y = dataset.load_testing()
@@ -86,10 +88,7 @@ if __name__ == "__main__":
     init = sim.initializers.UniformInitializer(lower_bound=-1.0, upper_bound=1.0)
 
     net = sim.SpikingNetwork()
-    #output_layer = net.add_fc_layer_from_source("callbacks/RewardSTDP.cpp", N_INPUTS, N_LABELS, TAU_S, THRESHOLD, init, buffer_size=64)
-    net.add_fc_layer(N_INPUTS, 800, TAU_S, 0.1, init, buffer_size=64)
-    net.add_fc_layer(800, 800, TAU_S, 10.0, init, buffer_size=64)
-    output_layer = net.add_fc_layer(800, N_LABELS, TAU_S, 10.0, init, buffer_size=64)
+    output_layer = net.add_fc_layer_from_source("callbacks/STDP.cpp", 800, N_LABELS, TAU_S, 1.0, init, buffer_size=64)
 
     loss_fct = MSELoss(TARGET_FALSE, TARGET_TRUE)
 
@@ -98,8 +97,7 @@ if __name__ == "__main__":
     cumum_loss = 0
     cumul_hit = 0
     for i, (x, y) in enumerate(zip(train_x, train_y)):
-        print(timeit.timeit(lambda: net.infer(x), number=1000))
-        exit()
+        net.infer(x)
 
         n_output_spikes = output_layer.n_spikes
         loss, errors = loss_fct.compute_loss_and_errors(n_output_spikes, y)
@@ -108,18 +106,13 @@ if __name__ == "__main__":
         cumum_loss += loss
         cumul_hit += hit
 
-        """print(hidden1_layer.n_spikes)
-        print(hidden2_layer.n_spikes)
-        print(n_output_spikes)
-        exit()"""
-        #if n_output_spikes[y] == 0:
-        #    print(f"SILENT LABEL: {y}")
+        # Compute R-STDP "gradient"
+        grad = output_layer.synaptic_traces[..., 1] * np.expand_dims(errors, 1)
 
-        #grad = output_layer.synaptic_traces[..., 1] * np.expand_dims(errors, 1)
+        # Apply step
+        output_layer.weights += LEARNING_RATE * grad
 
-        #output_layer.weights -= LEARNING_RATE * grad
-
-        if i % 10 == 0:
+        if i % 1000 == 0:
             print(f"{i} / 60000 | Loss: {cumum_loss / (i + 1)}, Accuracy: {100 * cumul_hit / (i + 1)}")
 
     print()

@@ -162,4 +162,6 @@ namespace EvSpikeSim {
 
         inline void extend_capacity();
     };
+
+    std::ostream &operator<<(std::ostream &os, const EvSpikeSim::SpikeArray &array);
 }
