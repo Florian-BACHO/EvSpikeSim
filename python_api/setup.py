@@ -97,7 +97,7 @@ def setup_gpu(version):
     ext = Extension('evspikesim',
                     sources=SOURCES,
                     library_dirs=["../build/lib/", CUDA['lib64']],
-                    libraries=["evspikesim", "cuda", "cudart"],
+                    libraries=["evspikesim", "cuda", "cudart", "cudadevrt"],
                     runtime_library_dirs=[CUDA['lib64']],
                     # this syntax is specific to this build system
                     # we're only going to use certain compiler args with nvcc and not with gcc

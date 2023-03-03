@@ -8,7 +8,7 @@
 
 using namespace EvSpikeSim;
 
-static constexpr char compiler_cmd[] = "nvcc -ccbin g++ --x=cu -shared -Xcompiler -fPIC -o ";
+static constexpr char compiler_cmd[] = "nvcc -rdc=true -ccbin g++ --x=cu -shared -Xcompiler -fPIC -o ";
 
 void JITCompiler::compile(const std::string &source_file, const std::string &dlib_path) {
     std::string cmd = compiler_cmd;

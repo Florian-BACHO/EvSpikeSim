@@ -20,6 +20,49 @@ namespace EvSpikeSim {
     }
 
     /**
+     * Updates the time of neuron and synaptic traces, i.e. applies decay.
+     * @param kernel_data The inference data.
+     * @param delta_t The time elapsed since the last event.
+     */
+    DEVICE void update_traces_time(KernelData &kernel_data, float delta_t);
+
+    /**
+     * Calls the on-pre callbacks with a given pre-synaptic spike.
+     * @param kernel_data The inference data.
+     * @param spike The pre-synaptic event that occured.
+     */
+    DEVICE void call_on_pre(KernelData &kernel_data, const Spike *spike);
+
+    /**
+     * Calls the on-post callbacks.
+     * @param kernel_data The inference data
+     */
+    DEVICE void call_on_post(KernelData &kernel_data);
+
+    /**
+     * Updates the time of the simulation. Applies exponential decays on the membrane potential and the eligibility
+     * traces.
+     *
+     * @param kernel_data The inference data.
+     * @param neuron_idx The index of the post-synaptic neuron being simulated.
+     * @param new_time The new simulation time.
+     */
+    DEVICE void update_time(KernelData &kernel_data, float new_time) {
+        float delta_t = *kernel_data.current_time - new_time; // Delta t is negative for decay
+        float exp_tau = compute_exp_tau(delta_t, kernel_data.tau);
+        float exp_tau_s = exp_tau * exp_tau; // Because tau = 2 * tau_s, squaring exp_tau gives exp_tau_s
+
+        // Update membrane potential
+        *kernel_data.a *= exp_tau_s;
+        *kernel_data.b *= exp_tau;
+
+        update_traces_time(kernel_data, delta_t);
+
+        // Update time
+        *kernel_data.current_time = new_time;
+    }
+
+    /**
      * Gets the timing of the next pre-synaptic spike. If the last pre-synaptic is spiked, INFINITY is returned.
      * @param current A pointer on the current spike.
      * @param end The end of the spikes.
@@ -63,43 +106,6 @@ namespace EvSpikeSim {
     }
 
     /**
-     * Updates the time of the simulation. Applies exponential decays on the membrane potential and the eligibility
-     * traces.
-     *
-     * @param kernel_data The inference data.
-     * @param neuron_idx The index of the post-synaptic neuron being simulated.
-     * @param new_time The new simulation time.
-     */
-    DEVICE void update_time(KernelData &kernel_data, unsigned int neuron_idx, float new_time) {
-        float delta_t = kernel_data.current_time[neuron_idx] - new_time; // Delta t is negative for decay
-        float exp_tau = compute_exp_tau(delta_t, kernel_data.tau);
-        float exp_tau_s = exp_tau * exp_tau; // Because tau = 2 * tau_s, squaring exp_tau gives exp_tau_s
-        float *traces;
-
-        // Update membrane potential
-        kernel_data.a[neuron_idx] *= exp_tau_s;
-        kernel_data.b[neuron_idx] *= exp_tau;
-
-        // Update neuron traces
-        traces = kernel_data.neuron_traces + neuron_idx * kernel_data.n_neuron_traces;
-        for (auto i = 0u; i < kernel_data.n_neuron_traces; i++) {
-            exp_tau = compute_exp_tau(delta_t, kernel_data.neuron_traces_tau[i]);
-            traces[i] *= exp_tau;
-        }
-
-        // Update synaptic traces
-        traces = kernel_data.synaptic_traces + neuron_idx * kernel_data.n_inputs * kernel_data.n_synaptic_traces;
-        for (auto i = 0u; i < kernel_data.n_synaptic_traces; i++) {
-            exp_tau = compute_exp_tau(delta_t, kernel_data.synaptic_traces_tau[i]);
-            for (auto j = 0u; j < kernel_data.n_inputs; j++)
-                traces[j * kernel_data.n_synaptic_traces + i] *= exp_tau;
-        }
-
-        // Update time
-        kernel_data.current_time[neuron_idx] = new_time;
-    }
-
-    /**
      * Integrates a post-synaptic spike into the membrane potential. Calls the on_pre callback with the
      * given pre-synaptic spike.
      *
@@ -107,17 +113,13 @@ namespace EvSpikeSim {
      * @param neuron_idx The index of the post-synaptic neuron being simulated.
      * @param spike The pre-synaptic spike to be integrated.
      */
-    DEVICE void integrate_pre_spike(KernelData &kernel_data, unsigned int neuron_idx, const Spike &spike) {
+    DEVICE void integrate_pre_spike(KernelData &kernel_data, const Spike &spike) {
         // On-pre callback
-        float weight = on_pre(spike, kernel_data.weights[neuron_idx * kernel_data.n_inputs + spike.index],
-                              kernel_data.neuron_traces + kernel_data.n_neuron_traces * neuron_idx,
-                              kernel_data.synaptic_traces + (neuron_idx * kernel_data.n_inputs + spike.index) *
-                              kernel_data.n_synaptic_traces,
-                              kernel_data.n_inputs);
+        float weight = kernel_data.weights[spike.index];
 
         // Integrate weights
-        kernel_data.a[neuron_idx] += weight;
-        kernel_data.b[neuron_idx] += weight;
+        *kernel_data.a += weight;
+        *kernel_data.b += weight;
     }
 
     /**
@@ -132,14 +134,13 @@ namespace EvSpikeSim {
      * @param n_spike_buffer The number of post-synaptic spike times contained in the neuron's buffer.
      * @return True if the spike buffer of the neuron is full. False otherwise.
      */
-    DEVICE bool fire(KernelData &kernel_data, unsigned int neuron_idx, const Spike *current_pre_spike,
-                     const Spike *end_pre_spikes, unsigned int &n_spike_buffer) {
-        float next_pre_time = get_next_time(current_pre_spike, end_pre_spikes);
+    DEVICE bool fire(KernelData &kernel_data, const Spike *end_pre_spikes, unsigned int &n_spike_buffer) {
+        float next_pre_time = get_next_time(*kernel_data.current_pre_spike, end_pre_spikes);
         bool valid_spike;
         float x, inside_log, spike_time;
-        float &a = kernel_data.a[neuron_idx];
-        float &b = kernel_data.b[neuron_idx];
-        float &current_time = kernel_data.current_time[neuron_idx];
+        float &a = *kernel_data.a;
+        float &b = *kernel_data.b;
+        float &current_time = *kernel_data.current_time;
 
         while (n_spike_buffer < kernel_data.buffer_size) {
             // Compute spike time
@@ -158,13 +159,12 @@ namespace EvSpikeSim {
                 return false;
 
             // Valid spike
-            update_time(kernel_data, neuron_idx, spike_time);
-            on_post(kernel_data.weights + neuron_idx * kernel_data.n_inputs,
-                    kernel_data.neuron_traces + kernel_data.n_neuron_traces * neuron_idx,
-                    kernel_data.synaptic_traces + kernel_data.n_synaptic_traces * kernel_data.n_inputs * neuron_idx,
-                    kernel_data.n_inputs);
-            kernel_data.n_spikes[neuron_idx]++;
-            kernel_data.buffer[neuron_idx * kernel_data.buffer_size + n_spike_buffer] = spike_time;
+            update_time(kernel_data, spike_time);
+
+            call_on_post(kernel_data);
+
+            (*kernel_data.n_spikes)++;
+            kernel_data.buffer[n_spike_buffer] = spike_time;
             b -= kernel_data.threshold;
             n_spike_buffer++;
 
@@ -177,6 +177,18 @@ namespace EvSpikeSim {
         return false;
     }
 
+    DEVICE void offset_kernel_data(KernelData &kernel_data, unsigned int neuron_idx) {
+        kernel_data.n_spikes += neuron_idx;
+        kernel_data.weights += neuron_idx * kernel_data.n_inputs;
+        kernel_data.current_pre_spike += neuron_idx;
+        kernel_data.current_time += neuron_idx;
+        kernel_data.a += neuron_idx;
+        kernel_data.b += neuron_idx;
+        kernel_data.buffer += neuron_idx * kernel_data.buffer_size;
+        kernel_data.neuron_traces += neuron_idx * kernel_data.n_neuron_traces;
+        kernel_data.synaptic_traces += neuron_idx * kernel_data.n_inputs * kernel_data.n_synaptic_traces;
+    }
+
     /**
      * Infer the neuron at the given index.
      * @param kernel_data The inference data.
@@ -184,23 +196,24 @@ namespace EvSpikeSim {
      * @param neuron_idx The index of the post-synaptic neuron being simulated.
      * @param first_call Must be true if this is the first call to the kernel during the inference, otherwise false.
      */
-    DEVICE void infer_neuron(KernelData &kernel_data, const Spike *end_pre_spikes, unsigned int neuron_idx,
+    DEVICE void infer_neuron(KernelData kernel_data, const Spike *end_pre_spikes, unsigned int neuron_idx,
                              bool first_call) {
         unsigned int n_spike_buffer = 0; // Keeps track of how many post-synaptic spikes times are in buffer
-        const Spike *&current_pre_spike = kernel_data.current_pre_spike[neuron_idx];
 
+        offset_kernel_data(kernel_data, neuron_idx);
         // Carry on inference if buffer was full in previous call
-        if (!first_call && current_pre_spike != end_pre_spikes) {
-            if (fire(kernel_data, neuron_idx, current_pre_spike, end_pre_spikes, n_spike_buffer))
+        if (!first_call && *kernel_data.current_pre_spike != end_pre_spikes) {
+            if (fire(kernel_data, end_pre_spikes, n_spike_buffer))
                 return; // Buffer full
-            current_pre_spike++;
+            (*kernel_data.current_pre_spike)++;
         }
-        while (current_pre_spike != end_pre_spikes) {
-            update_time(kernel_data, neuron_idx, current_pre_spike->time);
-            integrate_pre_spike(kernel_data, neuron_idx, *current_pre_spike);
-            if (fire(kernel_data, neuron_idx, current_pre_spike, end_pre_spikes, n_spike_buffer))
+        while (*kernel_data.current_pre_spike != end_pre_spikes) {
+            update_time(kernel_data, (*kernel_data.current_pre_spike)->time);
+            integrate_pre_spike(kernel_data, **kernel_data.current_pre_spike);
+            call_on_pre(kernel_data, *kernel_data.current_pre_spike);
+            if (fire(kernel_data, end_pre_spikes, n_spike_buffer))
                 return; // Buffer full
-            current_pre_spike++;
+            (*kernel_data.current_pre_spike)++;
         }
     }
 }

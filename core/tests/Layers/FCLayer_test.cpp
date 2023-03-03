@@ -127,79 +127,6 @@ TEST(FCLayerTest, InferenceUndersizedBuffer) {
     ASSERT_EQ(post_spikes, true_outputs);
 }
 
-TEST(FCLayerTest, WeightScalingCallbacks) {
-    auto initializer = ConstantInitializer();
-    SpikingNetwork network = SpikingNetwork();
-    unsigned int buffer_size = 64;
-    auto layer = network.add_layer_from_source<FCLayer>("../demos/callbacks/WeightScaling.cpp", 2, 3, 0.020, 0.1,
-                                                        initializer, buffer_size);
-    SpikeArray input_spikes = SpikeArray();
-    std::vector<float> weights = {0.5, 0.1,
-                                  -0.05, 0.4,
-                                  0.25, 0.2};
-    std::vector<unsigned int> true_n_spikes = {3, 4, 3};
-
-    SpikeArray true_outputs = SpikeArray();
-    true_outputs.add(0, 1.0047829);
-    true_outputs.add(0, 1.0112512);
-    true_outputs.add(0, 1.0215546);
-    true_outputs.add(1, 1.2063813);
-    true_outputs.add(1, 1.2163547);
-    true_outputs.add(1, 1.506313);
-    true_outputs.add(1, 1.5162327);
-    true_outputs.add(2, 1.0129402);
-    true_outputs.add(2, 1.2233235);
-    true_outputs.add(2, 1.5267321);
-    true_outputs.sort();
-
-    layer->get_weights() = weights;
-
-    input_spikes.add(0, 1.0);
-    input_spikes.add(1, 1.5);
-    input_spikes.add(1, 1.2);
-    input_spikes.sort();
-
-    const auto &post_spikes = layer->infer(input_spikes);
-
-    ASSERT_EQ(post_spikes, true_outputs);
-}
-
-TEST(FCLayerTest, WeightScalingCallbacksUndersizedBuffer) {
-    auto initializer = ConstantInitializer();
-    SpikingNetwork network = SpikingNetwork();
-    auto layer = network.add_layer_from_source<FCLayer>("../demos/callbacks/WeightScaling.cpp", 2, 3, 0.020, 0.1,
-                                                        initializer, 1);
-    SpikeArray input_spikes = SpikeArray();
-    std::vector<float> weights = {0.5, 0.1,
-                                  -0.05, 0.4,
-                                  0.25, 0.2};
-    std::vector<unsigned int> true_n_spikes = {3, 4, 3};
-
-    SpikeArray true_outputs = SpikeArray();
-    true_outputs.add(0, 1.0047829);
-    true_outputs.add(0, 1.0112512);
-    true_outputs.add(0, 1.0215546);
-    true_outputs.add(1, 1.2063813);
-    true_outputs.add(1, 1.2163547);
-    true_outputs.add(1, 1.506313);
-    true_outputs.add(1, 1.5162327);
-    true_outputs.add(2, 1.0129402);
-    true_outputs.add(2, 1.2233235);
-    true_outputs.add(2, 1.5267321);
-    true_outputs.sort();
-
-    layer->get_weights() = weights;
-
-    input_spikes.add(0, 1.0);
-    input_spikes.add(1, 1.5);
-    input_spikes.add(1, 1.2);
-    input_spikes.sort();
-
-    const auto &post_spikes = layer->infer(input_spikes);
-
-    ASSERT_EQ(post_spikes, true_outputs);
-}
-
 TEST(FCLayerTest, BasicTracesCallback) {
     auto initializer = ConstantInitializer();
     SpikingNetwork network = SpikingNetwork();
@@ -263,8 +190,8 @@ TEST(FCLayerTest, STDPCallback) {
     std::vector<float> init_weights = {0.0, 0.0, 0.0,
                                        0.0, 0.5, 0.0};
     auto &weights = layer->get_weights();
-    std::vector<float> true_final_weights = {0.0, 0.0, 0.0,
-                                             -0.00094981049, 0.501448, -0.00011343869};
+    std::vector<float> true_synaptic_traces = {0.0, 0.0, 0.0,
+                                               -0.94981045, 1.4472136, -0.11343868};
 
     weights = init_weights;
 
@@ -275,8 +202,9 @@ TEST(FCLayerTest, STDPCallback) {
     input_spikes.sort();
 
     layer->infer(input_spikes);
+
     for (auto i = 0; i < 6; i++)
-        ASSERT_FLOAT_EQ(weights.get_values()[i], true_final_weights[i]);
+        ASSERT_FLOAT_EQ(layer->get_synaptic_traces()[i * 2 + 1], true_synaptic_traces[i]);
 }
 
 TEST(FCLayerTest, STDPCallbackUndersizedBuffer) {
@@ -289,8 +217,8 @@ TEST(FCLayerTest, STDPCallbackUndersizedBuffer) {
     std::vector<float> init_weights = {0.0, 0.0, 0.0,
                                        0.0, 0.5, 0.0};
     auto &weights = layer->get_weights();
-    std::vector<float> true_final_weights = {0.0, 0.0, 0.0,
-                                             -0.00094981049, 0.501448, -0.00011343869};
+    std::vector<float> true_synaptic_traces = {0.0, 0.0, 0.0,
+                                               -0.94981045, 1.4472136, -0.11343868};
 
     weights = init_weights;
 
@@ -301,6 +229,7 @@ TEST(FCLayerTest, STDPCallbackUndersizedBuffer) {
     input_spikes.sort();
 
     layer->infer(input_spikes);
+
     for (auto i = 0; i < 6; i++)
-        ASSERT_FLOAT_EQ(weights.get_values()[i], true_final_weights[i]);
+        ASSERT_FLOAT_EQ(layer->get_synaptic_traces()[i * 2 + 1], true_synaptic_traces[i]);
 }

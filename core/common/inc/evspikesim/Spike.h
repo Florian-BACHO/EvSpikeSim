@@ -84,4 +84,7 @@ namespace EvSpikeSim {
         unsigned int index; /**< Index (in the layer) of the neuron that fired the spike. */
         float time; /**< Timing of the spike. */
     };
+
+
+    std::ostream &operator<<(std::ostream &os, const Spike &spike);
 }

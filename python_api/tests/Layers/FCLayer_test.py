@@ -115,70 +115,6 @@ class TestFCLayer(unittest.TestCase):
         self.assertTrue(isinstance(output_n_spikes, np.ndarray))
         self.assertTrue((output_n_spikes == targets_n_spikes).all())
 
-    def test_weight_scaling_callbacks(self):
-        weights = np.array([[1.0, 0.2],
-                            [-0.1, 0.8],
-                            [0.5, 0.4]], dtype=np.float32) / 2
-
-        indices = np.array([0, 1, 1], dtype=np.uint32)
-        times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
-        inputs = sim.SpikeArray(indices, times)
-        inputs.sort()
-
-        targets_n_spikes = np.array([3, 4, 3])
-        targets_indices = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2], dtype=np.uint32)
-        targets_times = np.array([1.0047829, 1.0112512, 1.0215546, 1.2063813, 1.2163547, 1.506313, 1.5162327,
-                                  1.0129402, 1.2233235, 1.5267321], dtype=np.float32)
-        targets = sim.SpikeArray(targets_indices, targets_times)
-        targets.sort()
-
-        net = sim.SpikingNetwork()
-        layer = net.add_fc_layer_from_source("../../demos/callbacks/WeightScaling.cpp", 2, 3, 0.020, 0.1,
-                                             ConstantInitializer())
-        layer.weights = weights
-
-        net.infer(inputs)
-        output_spikes = layer.post_spikes
-        output_n_spikes = layer.n_spikes
-
-        self.assertTrue(isinstance(output_spikes, sim.SpikeArray))
-        self.assertEqual(output_spikes, targets)
-
-        self.assertTrue(isinstance(output_n_spikes, np.ndarray))
-        self.assertTrue((output_n_spikes == targets_n_spikes).all())
-
-    def test_weight_scaling_callbacks_undersized_buffer(self):
-        weights = np.array([[1.0, 0.2],
-                            [-0.1, 0.8],
-                            [0.5, 0.4]], dtype=np.float32) / 2
-
-        indices = np.array([0, 1, 1], dtype=np.uint32)
-        times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
-        inputs = sim.SpikeArray(indices, times)
-        inputs.sort()
-
-        targets_n_spikes = np.array([3, 4, 3])
-        targets_indices = np.array([0, 0, 0, 1, 1, 1, 1, 2, 2, 2], dtype=np.uint32)
-        targets_times = np.array([1.0047829, 1.0112512, 1.0215546, 1.2063813, 1.2163547, 1.506313, 1.5162327,
-                                  1.0129402, 1.2233235, 1.5267321], dtype=np.float32)
-        targets = sim.SpikeArray(targets_indices, targets_times)
-        targets.sort()
-
-        net = sim.SpikingNetwork()
-        layer = net.add_fc_layer_from_source("../../demos/callbacks/WeightScaling.cpp", 2, 3, 0.020, 0.1,
-                                             ConstantInitializer(), buffer_size=1)
-        layer.weights = weights
-
-        net.infer(inputs)
-        output_spikes = layer.post_spikes
-        output_n_spikes = layer.n_spikes
-
-        self.assertTrue(isinstance(output_spikes, sim.SpikeArray))
-        self.assertEqual(output_spikes, targets)
-
-        self.assertTrue(isinstance(output_n_spikes, np.ndarray))
-        self.assertTrue((output_n_spikes == targets_n_spikes).all())
-
     def test_basic_traces_callbacks(self):
         weights = np.array([[1.0, 0.2],
                             [-0.1, 0.8],
@@ -236,8 +172,8 @@ class TestFCLayer(unittest.TestCase):
         indices = np.array([1, 0, 2, 1], dtype=np.uint32)
         times = np.array([0.0, 0.015, 0.100, 1.0], dtype=np.float32)
 
-        true_final_weights = np.array([[0.0, 0.0, 0.0],
-                                       [-0.00094981049, 0.501448, -0.00011343869]], dtype=np.float32)
+        target_traces = np.array([[0.0, 0.0, 0.0],
+                                  [-0.94981045, 1.4472136, -0.11343868]], dtype=np.float32)
 
         net = sim.SpikingNetwork()
         layer = net.add_fc_layer_from_source("../../demos/callbacks/STDP.cpp", 3, 2, 0.020, 0.1,
@@ -246,7 +182,7 @@ class TestFCLayer(unittest.TestCase):
 
         net.infer(indices, times)
 
-        self.assertTrue(np.allclose(layer.weights, true_final_weights))
+        self.assertTrue(np.allclose(layer.synaptic_traces[..., 1], target_traces))
 
     def test_stdp_callbacks_undersized_buffer(self):
         init_weights = np.array([[0.0, 0.0, 0.0],
@@ -255,8 +191,8 @@ class TestFCLayer(unittest.TestCase):
         indices = np.array([1, 0, 2, 1], dtype=np.uint32)
         times = np.array([0.0, 0.015, 0.100, 1.0], dtype=np.float32)
 
-        true_final_weights = np.array([[0.0, 0.0, 0.0],
-                                       [-0.00094981049, 0.501448, -0.00011343869]], dtype=np.float32)
+        target_traces = np.array([[0.0, 0.0, 0.0],
+                                  [-0.94981045, 1.4472136, -0.11343868]], dtype=np.float32)
 
         net = sim.SpikingNetwork()
         layer = net.add_fc_layer_from_source("../../demos/callbacks/STDP.cpp", 3, 2, 0.020, 0.1,
@@ -265,4 +201,4 @@ class TestFCLayer(unittest.TestCase):
 
         net.infer(indices, times)
 
-        self.assertTrue(np.allclose(layer.weights, true_final_weights))
+        self.assertTrue(np.allclose(layer.synaptic_traces[..., 1], target_traces))

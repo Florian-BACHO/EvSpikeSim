@@ -4,31 +4,38 @@
 
 #include <evspikesim/Layers/InferKernel.h>
 
-static constexpr float a_pre = 1e-3;
-static constexpr float a_post = 1e-3;
+static constexpr float a_pre = 1.0;
+static constexpr float a_post = 1.0;
 
 // Get time constants of each synaptic trace and each neuron trace respectively
 extern "C" std::pair<EvSpikeSim::vector<float>, EvSpikeSim::vector<float>> get_traces_tau(float tau_s, float tau) {
     (void) tau_s;
 
     // Set tau_pre and tau_post as the membrane time constant.
-    return {{tau}, {tau}};
+    return {{tau, INFINITY},
+            {tau}};
 }
 
-CALLBACK float EvSpikeSim::on_pre(const EvSpikeSim::Spike &pre_spike, float &weight, float *neuron_traces,
-                                  float *synaptic_traces, unsigned int n_synapses) {
-    (void) pre_spike;
-    (void) n_synapses;
+CALLBACK void EvSpikeSim::on_pre_neuron(float weight, float *neuron_traces) {
+    (void) weight;
+    (void) neuron_traces;
+}
 
-    // Update synaptic trace
+CALLBACK void EvSpikeSim::on_pre_synapse(float weight, const float *neuron_traces, float *synaptic_traces) {
+    (void) weight;
+    (void) neuron_traces;
+
     synaptic_traces[0] += a_pre;
-    weight -= neuron_traces[0]; // Depression
-    return weight;
+    synaptic_traces[1] -= neuron_traces[0];
 }
 
-CALLBACK void EvSpikeSim::on_post(float *neuron_weights, float *neuron_traces, float *synaptic_traces,
-                                  unsigned int n_synapses) {
+CALLBACK void EvSpikeSim::on_post_neuron(float *neuron_traces) {
     neuron_traces[0] += a_post;
-    for (auto i = 0u; i < n_synapses; i++)
-        neuron_weights[i] += synaptic_traces[i]; // Potentiation
+}
+
+CALLBACK void EvSpikeSim::on_post_synapse(float weight, const float *neuron_traces, float *synaptic_traces) {
+    (void) weight;
+    (void) neuron_traces;
+
+    synaptic_traces[1] += synaptic_traces[0];
 }

@@ -18,7 +18,7 @@ set_source_files_properties(${SRC_LIST} PROPERTIES LANGUAGE CUDA)
 
 add_library(evspikesim STATIC ${SRC_LIST})
 
-target_link_libraries(evspikesim ${CUDA_LIBRARIES} stdc++fs)
+target_link_libraries(evspikesim ${CUDA_LIBRARIES} stdc++fs dl)
 
 set_target_properties(evspikesim PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"

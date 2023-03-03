@@ -45,33 +45,33 @@ namespace EvSpikeSim {
 #endif
 
     /**
-     * Callback called at each pre-synaptic event during the inference of a neuron.
-     *
-     * @param pre_spike The pre-synaptic spike that caused the event.
-     * @param weight Mutable referencee on the weight of the connection between the post-synaptic neuron and the
-     * pre-synaptic neuron that caused the event.
-     * @param neuron_traces The traces of the neuron that received the spike. The size of the array corresponds to the
-     * number of neuron traces time constants returned by get_traces_tau.
-     * @param synaptic_traces The traces of the synapse that received the spike. The size of the array corresponds to
-     * the number of synaptic traces time constants returned by get_traces_tau.
-     * @param n_synapses The number of synapses of the neuron.
-     * @return The value to be integrated into the membrane potential (typically the weight received as argument).
+     * Callback used to update the neuron traces at each pre-synaptic event.
+     * @param weight The weight of the connection that received the pre-synaptic spike.
+     * @param neuron_traces The neuron traces.
      */
-    CALLBACK float on_pre(const Spike &pre_spike, float &weight, float *neuron_traces, float *synaptic_traces,
-                          unsigned int n_synapses);
+    CALLBACK void on_pre_neuron(float weight, float *neuron_traces);
 
     /**
-     * Callback called at each post-synaptic event during the inference of a neuron.
-     *
-     * @param neuron_weights Pointer on the weights of the neuron that fired the spike.
-     * @param neuron_traces The traces of the neuron that fired the spike. The size of the array corresponds to the
-     * number of neuron traces time constants returned by get_traces_tau.
-     * @param synaptic_traces The traces of all synapse of the neuron that fired the spike. The size of the array
-     * corresponds to n_synapses times the number of synaptic traces time constants returned by get_traces_tau.
-     * @param n_synapses The number of synapses of the neuron that fired the spike.
+     * Callback used to update the synaptic traces at each pre-synaptic event.
+     * @param weight The weight of the connection that received the pre-synaptic spike.
+     * @param neuron_traces The neuron traces.
+     * @param synaptic_traces The traces of the synapse that received the pre-synaptic spike.
      */
-    CALLBACK void on_post(float *neuron_weights, float *neuron_traces, float *synaptic_traces,
-                          unsigned int n_synapses);
+    CALLBACK void on_pre_synapse(float weight, const float *neuron_traces, float *synaptic_traces);
+
+    /**
+     * Callback used to update the neuron traces at each post-synaptic event.
+     * @param neuron_traces The neuron traces.
+     */
+    CALLBACK void on_post_neuron(float *neuron_traces);
+
+    /**
+     * Callback used to the update synaptic traces at each post-synaptic event.
+     * @param weight The weight of the synapse that is being updated.
+     * @param neuron_traces The neuron traces.
+     * @param synaptic_traces The traces of the synapse that is being updated.
+     */
+    CALLBACK void on_post_synapse(float weight, const float *neuron_traces, float *synaptic_traces);
 }
 
 // Suppress return-type-c-linkage warning as we know that only C++ code will use these functions
