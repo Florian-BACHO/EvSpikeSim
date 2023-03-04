@@ -3,4 +3,3 @@ sphinx_copybutton
 breathe
 exhale
 matplotlib
-graphviz

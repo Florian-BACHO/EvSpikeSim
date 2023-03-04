@@ -5,11 +5,9 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-import os
 
-import sys
+import shutil
 import textwrap
-import matplotlib
 
 
 def get_project_version():
@@ -37,6 +35,8 @@ extensions = ['sphinx_copybutton',
               'matplotlib.sphinxext.plot_directive',
               'breathe',
               'exhale']
+
+graphviz_dot = shutil.which('dot')
 
 todo_include_todos = False # If true, shows todos notes in the doc
 
