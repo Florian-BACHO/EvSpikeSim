@@ -469,7 +469,7 @@ In EvSpikeSim C++, this can be done by providing the seed at the construction of
 In EvSpikeSim Python, the random generator used by initializers is global. To set its seed, proceed as follows:
 
 .. code-block:: python
-    
+
     seed = 42
     sim.random.set_seed(seed)
 
