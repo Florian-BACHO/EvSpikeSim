@@ -216,6 +216,18 @@ namespace EvSpikeSim {
             (*kernel_data.current_pre_spike)++;
         }
     }
+
+
+    /**
+     * Gets the time constants of each synaptic trace and each neuron trace respectively.
+     *
+     * @param tau_s The synaptic time constant of the neurons.
+     * @param tau The membrane time constant of the neurons (2 * tau_s).
+     * @return A pair of vectors containing the time constants of each synaptic trace and each neuron trace respectively.
+     */
+    extern "C" std::pair<EvSpikeSim::vector<float>, EvSpikeSim::vector<float>> get_traces_tau(float tau_s, float tau) {
+        return {synaptic_traces_tau(tau_s, tau), neuron_traces_tau(tau)};
+    }
 }
 
 #endif

@@ -45,6 +45,21 @@ namespace EvSpikeSim {
 #endif
 
     /**
+     * Gets neuron traces time constants
+     * @param tau The membrane time constant.
+     * @return A vector of time constants.
+     */
+    EvSpikeSim::vector<float> neuron_traces_tau(float tau);
+
+    /**
+     * Gets synaptic traces time constants.
+     * @param tau_s The synaptic time constant.
+     * @param tau The membrane time constant.
+     * @return A vector of time constants
+     */
+    EvSpikeSim::vector<float> synaptic_traces_tau(float tau_s, float tau);
+
+    /**
      * Callback used to update the neuron traces at each pre-synaptic event.
      * @param weight The weight of the connection that received the pre-synaptic spike.
      * @param neuron_traces The neuron traces.

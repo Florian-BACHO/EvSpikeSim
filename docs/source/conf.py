@@ -9,6 +9,7 @@ import os
 
 import sys
 import textwrap
+import matplotlib
 
 
 def get_project_version():
@@ -32,10 +33,16 @@ extensions = ['sphinx_copybutton',
               'sphinx.ext.napoleon',
               'sphinx.ext.viewcode',
               'sphinx.ext.todo',
+              'sphinx.ext.graphviz',
+              'matplotlib.sphinxext.plot_directive',
               'breathe',
               'exhale']
 
-todo_include_todos = True # Shows todo
+todo_include_todos = False # If true, shows todos notes in the doc
+
+# Disable download link in matplotlib plots
+plot_html_show_source_link = False
+plot_html_show_formats = False
 
 templates_path = ['_templates']
 exclude_patterns = []

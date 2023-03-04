@@ -2,15 +2,19 @@
 // Created by Florian Bacho on 16/02/23.
 //
 
-#include <evspikesim/Layers/InferKernel.h>
+#include <evspikesim/Layers/EligibilityTraces.h>
 
-// Get time constants of each synaptic trace and each neuron trace respectively
-extern "C" std::pair<EvSpikeSim::vector<float>, EvSpikeSim::vector<float>> get_traces_tau(float tau_s, float tau) {
+EvSpikeSim::vector<float> EvSpikeSim::synaptic_traces_tau(float tau_s, float tau) {
     (void) tau_s;
     (void) tau;
 
-    return {{},
-            {}}; // No trace
+    return {};
+}
+
+EvSpikeSim::vector<float> EvSpikeSim::neuron_traces_tau(float tau) {
+    (void) tau;
+
+    return {};
 }
 
 CALLBACK void EvSpikeSim::on_pre_neuron(float weight, float *neuron_traces) {

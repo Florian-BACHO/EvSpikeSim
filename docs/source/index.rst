@@ -27,7 +27,7 @@ Neuron Model
 The neuron model implemented in this simulator is the Current-Based Leaky Integrate-and-Fire (CuBa LIF) neuron. The membrane potential of each neuron `i` is defined as:
 
 .. math::
-    u_i(t) = \sum_{j} w_{i,j} \sum_{t_j} \underbrace{\left[\exp\left(\frac{t_j - t}{\tau}\right) - \exp\left(\frac{t_j - t}{\tau_s}\right) \right]}_{\text{Post-Synaptic Potential}} - \underbrace{\vartheta \sum_{t_i} \exp\left(\frac{t_i - t}{\tau}\right)}_{\text{Reset}}
+    u_i(t) = \sum_{j} w_{i,j} \sum_{t_j < t} \underbrace{\left[\exp\left(\frac{t_j - t}{\tau}\right) - \exp\left(\frac{t_j - t}{\tau_s}\right) \right]}_{\text{Post-Synaptic Potential}} - \underbrace{\vartheta \sum_{t_i < t} \exp\left(\frac{t_i - t}{\tau}\right)}_{\text{Reset}}
 
 where :math:`\tau_s` and :math:`\tau` are respectively the synaptic and membrane time constants, :math:`w_{i,j}` is the weight between the post-synaptic neuron :math:`i` and the pre-synaptic neuron :math:`j`, :math:`t_j < t` is a pre-synaptic pre-synaptic spike timings received at synapse :math:`j`, :math:`t_i < t` is a post-synaptic spike timing and :math:`\vartheta` is the threshold.
 
@@ -43,6 +43,7 @@ Pre-synaptic spikes are integrated over time with a double-exponential Post-Syna
    self
    installation
    getting_started
+   advanced_guide
    docker
    cpp_api/library_root
    python_api

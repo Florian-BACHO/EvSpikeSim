@@ -2,7 +2,7 @@
 Getting Started
 ===============
 
-This tutorial introduces the basics of EvSpikeSim, from linkinng your project with the library to
+This tutorial introduces the basics of EvSpikeSim, from linking your project with the library to
 creating and running your first Spiking Neural Network (SNN).
 
 .. contents:: Table of Contents
