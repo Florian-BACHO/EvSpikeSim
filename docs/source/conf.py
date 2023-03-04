@@ -36,8 +36,6 @@ extensions = ['sphinx_copybutton',
               'breathe',
               'exhale']
 
-graphviz_dot = shutil.which('dot')
-
 todo_include_todos = False # If true, shows todos notes in the doc
 
 # Disable download link in matplotlib plots

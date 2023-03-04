@@ -8,6 +8,7 @@ build:
   apt_packages:
     - g++
     - cmake
+    - graphviz
 
   jobs:
     post_install:
