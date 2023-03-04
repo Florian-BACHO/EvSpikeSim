@@ -1,32 +1,26 @@
 import evspikesim as sim
-import numpy as np
-
 
 if __name__ == "__main__":
     # Create network
     network = sim.SpikingNetwork()
 
+    # Uniform distribution for weight initialization (by default: [-1, 1])
+    init = sim.initializers.UniformInitializer()
+
     # Add fully-connected layer to the network
-    desc = sim.layers.FCLayerDescriptor(n_inputs=2, n_neurons=3, tau_s=0.020, threshold=0.020 * 0.2)
-    layer = network.add_layer(desc)
-
-    # Set weights
-    layer.weights = np.array([[1.0, 0.3],
-                              [-0.1, 0.8],
-                              [0.5, 0.4]], dtype=np.float32)
-
-    # Mutate synapse 1 of neuron 0 
-    layer.weights[0, 1] -= 0.1
+    layer = network.add_fc_layer(n_inputs=10, n_neurons=100, tau_s=0.010, threshold=0.1, initializer=init)
 
     # Create input spikes
-    input_indices = np.array([0, 1, 1], dtype=np.int32)
-    input_times = np.array([1.0, 1.5, 1.2], dtype=np.float32)
+    input_indices = [0, 8, 2, 4]
+    input_times = [1.0, 1.5, 1.2, 1.1]
 
     # Inference
     output_spikes = network.infer(input_indices, input_times)
 
+    # Print output spikes
     print("Output spikes:")
     print(output_spikes)
 
+    # Print output spike counts
     print("Output spike counts:")
     print(layer.n_spikes)

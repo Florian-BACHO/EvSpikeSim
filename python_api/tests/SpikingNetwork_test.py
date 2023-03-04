@@ -1,22 +1,21 @@
 import unittest
 import evspikesim as sim
-from evspikesim.layers import FCLayerDescriptor
+from evspikesim.initializers import ConstantInitializer
 import numpy as np
 
 
 class TestSpikingNetwork(unittest.TestCase):
     def test_add_fc_layers(self):
         net = sim.SpikingNetwork()
-        desc = FCLayerDescriptor(2, 3, 0.1, 1.0)
 
         self.assertEqual(len(net), 0)
 
-        net.add_layer(desc)
+        net.add_fc_layer(2, 3, 0.020, 0.1, ConstantInitializer())
 
         self.assertEqual(len(net), 1)
 
-        net.add_layer(desc)
-        net.add_layer(desc)
+        net.add_fc_layer(2, 3, 0.020, 0.1, ConstantInitializer())
+        net.add_fc_layer(2, 3, 0.020, 0.1, ConstantInitializer())
 
         self.assertEqual(len(net), 3)
 
@@ -27,15 +26,15 @@ class TestSpikingNetwork(unittest.TestCase):
 
         net = sim.SpikingNetwork()
 
-        for param in params:
-            net.add_layer(FCLayerDescriptor(*param))
+        for n_inputs, n_neurons, tau_s, threshold in params:
+            net.add_fc_layer(n_inputs, n_neurons, tau_s, threshold, ConstantInitializer())
 
         for (n_inputs, n_neurons, tau_s, threshold), layer in zip(params, net):
-            self.assertEqual(layer.descriptor.n_inputs, n_inputs)
-            self.assertEqual(layer.descriptor.n_neurons, n_neurons)
-            self.assertAlmostEqual(layer.descriptor.tau_s, tau_s)
-            self.assertAlmostEqual(layer.descriptor.tau, 2 * tau_s)
-            self.assertAlmostEqual(layer.descriptor.threshold, threshold)
+            self.assertEqual(layer.n_inputs, n_inputs)
+            self.assertEqual(layer.n_neurons, n_neurons)
+            self.assertAlmostEqual(layer.tau_s, tau_s)
+            self.assertAlmostEqual(layer.tau, 2 * tau_s)
+            self.assertAlmostEqual(layer.threshold, threshold)
 
     def test_get_output_layer(self):
         params = [[2, 3, 0.1, 1.1],
@@ -44,16 +43,16 @@ class TestSpikingNetwork(unittest.TestCase):
 
         net = sim.SpikingNetwork()
 
-        for param in params:
-            net.add_layer(FCLayerDescriptor(*param))
+        for n_inputs, n_neurons, tau_s, threshold in params:
+            net.add_fc_layer(n_inputs, n_neurons, tau_s, threshold, ConstantInitializer())
 
         n_inputs, n_neurons, tau_s, threshold = params[2]
         layer = net.output_layer
-        self.assertEqual(layer.descriptor.n_inputs, n_inputs)
-        self.assertEqual(layer.descriptor.n_neurons, n_neurons)
-        self.assertAlmostEqual(layer.descriptor.tau_s, tau_s)
-        self.assertAlmostEqual(layer.descriptor.tau, 2 * tau_s)
-        self.assertAlmostEqual(layer.descriptor.threshold, threshold)
+        self.assertEqual(layer.n_inputs, n_inputs)
+        self.assertEqual(layer.n_neurons, n_neurons)
+        self.assertAlmostEqual(layer.tau_s, tau_s)
+        self.assertAlmostEqual(layer.tau, 2 * tau_s)
+        self.assertAlmostEqual(layer.threshold, threshold)
 
     def test_get_item(self):
         params = [[2, 3, 0.1, 1.1],
@@ -62,16 +61,16 @@ class TestSpikingNetwork(unittest.TestCase):
 
         net = sim.SpikingNetwork()
 
-        for param in params:
-            net.add_layer(FCLayerDescriptor(*param))
+        for n_inputs, n_neurons, tau_s, threshold in params:
+            net.add_fc_layer(n_inputs, n_neurons, tau_s, threshold, ConstantInitializer())
 
         for (n_inputs, n_neurons, tau_s, threshold), idx in zip(params, range(len(net))):
             layer = net[idx]
-            self.assertEqual(layer.descriptor.n_inputs, n_inputs)
-            self.assertEqual(layer.descriptor.n_neurons, n_neurons)
-            self.assertAlmostEqual(layer.descriptor.tau_s, tau_s)
-            self.assertAlmostEqual(layer.descriptor.tau, 2 * tau_s)
-            self.assertAlmostEqual(layer.descriptor.threshold, threshold)
+            self.assertEqual(layer.n_inputs, n_inputs)
+            self.assertEqual(layer.n_neurons, n_neurons)
+            self.assertAlmostEqual(layer.tau_s, tau_s)
+            self.assertAlmostEqual(layer.tau, 2 * tau_s)
+            self.assertAlmostEqual(layer.threshold, threshold)
 
     def test_infer_spike_array(self):
         weights = np.array([[1.0, 0.2],
@@ -90,7 +89,7 @@ class TestSpikingNetwork(unittest.TestCase):
         targets.sort()
 
         net = sim.SpikingNetwork()
-        layer = net.add_layer(FCLayerDescriptor(2, 3, 0.020, 0.020 * 0.2))
+        layer = net.add_fc_layer(2, 3, 0.020, 0.1, ConstantInitializer())
         layer.weights = weights
 
         output_spikes = net.infer(inputs)
@@ -106,7 +105,7 @@ class TestSpikingNetwork(unittest.TestCase):
         inputs = sim.SpikeArray(indices, times)
 
         net = sim.SpikingNetwork()
-        layer = net.add_layer(FCLayerDescriptor(2, 3, 0.020, 0.020 * 0.2))
+        layer = net.add_fc_layer(2, 3, 0.020, 0.1, ConstantInitializer())
         layer.weights = weights
 
         self.assertRaises(RuntimeError, net.infer, inputs)
@@ -127,7 +126,7 @@ class TestSpikingNetwork(unittest.TestCase):
         targets.sort()
 
         net = sim.SpikingNetwork()
-        layer = net.add_layer(FCLayerDescriptor(2, 3, 0.020, 0.020 * 0.2))
+        layer = net.add_fc_layer(2, 3, 0.020, 0.1, ConstantInitializer())
         layer.weights = weights
 
         output_spikes = net.infer(indices=input_indices, times=input_times)
@@ -150,7 +149,7 @@ class TestSpikingNetwork(unittest.TestCase):
         targets.sort()
 
         net = sim.SpikingNetwork()
-        layer = net.add_layer(FCLayerDescriptor(2, 3, 0.020, 0.020 * 0.2))
+        layer = net.add_fc_layer(2, 3, 0.020, 0.1, ConstantInitializer())
         layer.weights = weights
 
         net.infer(inputs) # Run a first time

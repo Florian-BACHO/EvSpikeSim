@@ -77,9 +77,9 @@ TEST(NDArrayTest, Size) {
 
 TEST(NDArrayTest, SetGetValues) {
     NDArray<float> tensor({2, 3});
-    std::vector<float> new_values = {0, 1,
-                                     2, 3,
-                                     4, 5};
+    EvSpikeSim::vector<float> new_values = {0, 1,
+                                            2, 3,
+                                            4, 5};
 
     tensor.set_values(new_values);
     EXPECT_EQ(tensor.get_values(), new_values);
@@ -87,9 +87,9 @@ TEST(NDArrayTest, SetGetValues) {
 
 TEST(NDArrayTest, SetGetValuesIterator) {
     NDArray<float> tensor({2, 3});
-    std::vector<float> new_values = {0, 1,
-                                     2, 3,
-                                     4, 5};
+    EvSpikeSim::vector<float> new_values = {0, 1,
+                                            2, 3,
+                                            4, 5};
 
     tensor.set_values(new_values.begin(), new_values.end());
     EXPECT_EQ(tensor.get_values(), new_values);
@@ -97,9 +97,9 @@ TEST(NDArrayTest, SetGetValuesIterator) {
 
 TEST(NDArrayTest, AssignOperator) {
     NDArray<float> tensor({2, 3});
-    std::vector<float> new_values = {0, 1,
-                                     2, 3,
-                                     4, 5};
+    EvSpikeSim::vector<float> new_values = {0, 1,
+                                            2, 3,
+                                            4, 5};
 
     tensor = new_values;
     EXPECT_EQ(tensor.get_values(), new_values);

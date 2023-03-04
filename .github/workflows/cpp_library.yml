@@ -1,4 +1,4 @@
-name: cpp_library
+name: C++ Library Tests
 
 on:
   pull_request:
@@ -30,7 +30,7 @@ jobs:
         sudo make install
 
     - name: Test
-      working-directory: ${{github.workspace}}/build/tests
+      working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ./tests
+      run: ./tests/tests

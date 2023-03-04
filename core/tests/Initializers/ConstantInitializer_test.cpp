@@ -25,11 +25,10 @@ TEST(ConstantInitializerTest, Value) {
 }
 
 TEST(ConstantInitializerTest, LayerInitialization) {
-    FCLayerDescriptor desc(10, 10, 0.020, 0.020 * 0.2);
     SpikingNetwork network = SpikingNetwork();
     ConstantInitializer init(42.21f);
 
-    auto layer = network.add_layer(desc, init);
+    auto layer = network.add_layer<FCLayer>(10, 10, 0.020, 0.020, init);
 
     for (auto i = 0; i < 100; i++)
         EXPECT_EQ(layer->get_weights().get_values()[i], 42.21f);

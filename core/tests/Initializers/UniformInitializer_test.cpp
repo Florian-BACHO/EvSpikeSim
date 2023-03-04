@@ -42,13 +42,12 @@ TEST(UniformInitializerTest, Bounds) {
 
 TEST(UniformInitializerTest, LayerInitialization) {
     std::random_device generator;
-    FCLayerDescriptor desc(10, 10, 0.020, 0.020 * 0.2);
     SpikingNetwork network = SpikingNetwork();
     UniformInitializer init(generator);
     float last_value = -420.0;
     float value;
 
-    auto layer = network.add_layer(desc, init);
+    auto layer = network.add_layer<FCLayer>(10, 10, 0.020, 0.020, init);
 
     for (auto i = 0; i < 100; i++) {
         value = layer->get_weights().get_values()[i];
