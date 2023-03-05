@@ -20,18 +20,15 @@ namespace EvSpikeSim {
     public:
         /**
          * Constructs the base layer.
-         * @param weights_dims The dimension of weights.
          * @param n_inputs The number of input neurons.
          * @param n_neurons The number of neurons in the layer.
          * @param tau_s The synaptic time constant.
          * @param threshold The threshold.
-         * @param initializer The initializer to use to initialize weights.
          * @param buffer_size The size (per neuron) of the post-synaptic spike times buffer used during inference.
          * @param traces_tau_fct The function returning the time constants of synaptic and neuron eligibility traces.
          * @param kernel_fct The inference kernel function.
          */
-        Layer(const std::initializer_list<unsigned int> &weights_dims,
-              unsigned int n_inputs,
+        Layer(unsigned int n_inputs,
               unsigned int n_neurons,
               float tau_s,
               float threshold,
@@ -121,6 +118,12 @@ namespace EvSpikeSim {
 
     protected:
         /**
+         * Creates the kernel data structure that is passed to kernel_fct during for inference.
+         * @return A structure containing all the data required for inference.
+         */
+        KernelData get_kernel_data();
+
+        /**
          * Resets the layer, including membrane potential and traces.
          * @param pre_spikes
          */
@@ -136,6 +139,12 @@ namespace EvSpikeSim {
          * Processes the post-synaptic spike buffer into the post-synaptic spike array.
          */
         void process_buffer();
+
+        /**
+         * Resize the internal attributes for a new size of batch.
+         * @param new_batch_size The new size of batch.
+         */
+        //void resize_batch_size(unsigned int new_batch_size);
 
     protected:
         static constexpr float infinity = std::numeric_limits<float>::infinity(); /**< The float value of infinity */
@@ -167,8 +176,8 @@ namespace EvSpikeSim {
         // Traces
         EvSpikeSim::vector<float> synaptic_traces_tau; /**< Time constants of synaptic traces. */
         EvSpikeSim::vector<float> neuron_traces_tau; /**< Time constants of neuron traces. */
-        EvSpikeSim::vector<float> synaptic_traces;  /**< Synaptic eligibility traces. */
-        EvSpikeSim::vector<float> neuron_traces; /**< Neuron eligibility traces. */
+        vector<float> synaptic_traces;  /**< Synaptic eligibility traces. */
+        vector<float> neuron_traces; /**< Neuron eligibility traces. */
 
         // Inference kernel
         KernelData kernel_data; /**< A convenient structure that stores all pointers and data required for the inference. */
@@ -182,12 +191,6 @@ namespace EvSpikeSim {
          * @param traces_tau_fct The function returning the time constants of synaptic and neuron eligibility traces.
          */
         void init_traces(get_traces_tau_fct traces_tau_fct);
-
-        /**
-         * Creates the kernel data structure that is passed to kernel_fct during for inference.
-         * @return A structure containing all the data required for inference.
-         */
-        KernelData get_kernel_data();
 
         /**
          * Gets a void * pointer on the global thread pool.

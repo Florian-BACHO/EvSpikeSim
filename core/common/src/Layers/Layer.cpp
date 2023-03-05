@@ -7,8 +7,7 @@
 
 using namespace EvSpikeSim;
 
-Layer::Layer(const std::initializer_list<unsigned int> &weights_dims,
-             unsigned int n_inputs,
+Layer::Layer(unsigned int n_inputs,
              unsigned int n_neurons,
              float tau_s,
              float threshold,
@@ -25,7 +24,7 @@ Layer::Layer(const std::initializer_list<unsigned int> &weights_dims,
         post_spikes(),
         n_spikes(n_neurons),
 
-        weights(weights_dims, initializer),
+        weights(n_neurons, n_inputs),
 
         current_pre_spike(n_neurons),
         current_time(n_neurons),
@@ -37,6 +36,7 @@ Layer::Layer(const std::initializer_list<unsigned int> &weights_dims,
         buffer_full(EvSpikeSim::make_unique<bool>()),
 
         kernel_fct(kernel_fct) {
+    weights.initialize(initializer);
     init_traces(traces_tau_fct);
     kernel_data = get_kernel_data();
 }
@@ -94,6 +94,10 @@ void Layer::process_buffer() {
         }
     }
 }
+
+/*void Layer::resize_batch_size(unsigned int new_batch_size) {
+    n_spikes = NDArray<unsigned int>({})
+}*/
 
 void Layer::reset(const SpikeArray &pre_spikes) {
     post_spikes.clear();

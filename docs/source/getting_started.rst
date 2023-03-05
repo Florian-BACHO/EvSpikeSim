@@ -272,13 +272,12 @@ layer. Taking the layer previously created, weights are accessed and mutated as 
     sim::NDArray<float> &weights = layer->get_weights(); // Get the weight matrix of the layer.
     std::vector<unsigned int> dims = weights.get_dims(); // Get the dimensions of the matrix.
 
-    float &w = weights.get(3, 5); // Get the weight of the connection.
-    w = 0.1 // Set -0.1 to the connection.
-    weights.set(-0.1, 3, 5); // Set -0.1 to the connection.
+    float w = weights(3, 5); // Get the weight of the connection.
+    weights(3, 5) = 0.1 // Set -0.1 to the connection.
 
 Here, we first get the weight matrix from the layer and its dimensions.
 We then get the weight between the post-synaptic neuron at index 3
-and the pre-synaptic neuron at index 5. The last two lines show two different ways to set a new value to the connection.
+and the pre-synaptic neuron at index 5. The last line shows how to set a new value to the connection.
 
 Alternatively, a contiguous and mutable vector can be obtained from the weight matrix:
 
