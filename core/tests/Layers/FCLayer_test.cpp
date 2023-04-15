@@ -53,7 +53,7 @@ TEST(FCLayerTest, ConstructionInitIncremental) {
     float i = 0.0;
     for (auto y = 0u; y < weights_dims[0]; y++)
         for (auto x = 0u; x < weights_dims[1]; x++)
-            EXPECT_FLOAT_EQ(weights.get(y, x), i++);
+            EXPECT_FLOAT_EQ(weights(y, x), i++);
 }
 
 TEST(FCLayerTest, Inference) {

@@ -23,43 +23,35 @@ namespace EvSpikeSim {
     class NDArray {
     public:
         /**
-         * Constructs an uninitialized array with the given dimensions.
-         * @param dimensions Initializer list containing the dimensions of the array.
+         * Default constructor. Constructs an empty array with 0 dimensions.
          */
-        NDArray(const std::initializer_list<unsigned int> &dimensions) :
-                dims(dimensions), values(NDArray::count_n_elems(dimensions)) {}
+        NDArray() = default;
 
         /**
-         * Constructs an array with the given dimensions and initializes it with the given initializer
-         * @param dimensions Initializer list containing the dimensions of the array.
-         * @param fct Initializer that initializes the values of the array.
+         * Constructs a new array with the given dimensions.
+         * @tparam Args The types of the dimensions (variadic).
+         * @param args The variadic dimension arguments.
          */
-        NDArray(const std::initializer_list<unsigned int> &dimensions, Initializer &fct) :
-                NDArray(dimensions) {
-            for (auto &it : values)
-                it = fct();
+        template <typename... Args>
+        NDArray(Args... args) {
+            init_array(1, args...);
         }
 
         /**
-         * Constructs an array with the given dimensions and initializes it with the given initializer
-         * @param dimensions Initializer list containing the dimensions of the array.
-         * @param fct Initializer that initializes the values of the array.
+         * Initializes the values of the array with the given initializer.
+         * @param init The initializer that will initialize the values.
          */
-        NDArray(const std::initializer_list<unsigned int> &dimensions, Initializer &&fct) :
-                NDArray(dimensions) {
+        void initialize(Initializer &init) {
             for (auto &it : values)
-                it = fct();
+                it = init();
         }
 
         /**
-         * Constructs an array with the given dimensions and initializes it with the given initializer
-         * @param dimensions Initializer list containing the dimensions of the array.
-         * @param fct Initializer that initializes the values of the array.
+         * Initializes the values of the array with the given initializer.
+         * @param init The initializer that will initialize the values.
          */
-        NDArray(const std::initializer_list<unsigned int> &dimensions, std::shared_ptr<Initializer> &fct) :
-                NDArray(dimensions) {
-            for (auto &it : values)
-                it = (*fct)();
+        void initialize(Initializer &&init) {
+            initialize(init);
         }
 
         /**
@@ -125,7 +117,7 @@ namespace EvSpikeSim {
          * @return A reference on the value stored at the given indices.
          */
         template<typename U, typename... Args>
-        T &get(U first_idx, Args... indices) {
+        T &operator()(U first_idx, Args... indices) {
             return values[get_index(dims.begin(), U(0), first_idx, indices...)];
         }
 
@@ -138,21 +130,8 @@ namespace EvSpikeSim {
          * @return A const reference on the value stored at the given indices.
          */
         template<typename U, typename... Args>
-        const T &get(U first_idx, Args... indices) const {
+        const T &operator()(U first_idx, Args... indices) const {
             return values[get_index(dims.begin(), U(0), first_idx, indices...)];
-        }
-
-        /**
-         * Set a new value at the specified index.  Usage: arr.get(-4, 3, 2, 4) sets the new value -4 in a 3D array.
-         * @tparam U Type of the first index.
-         * @tparam Args Types of the remaining indices.
-         * @param value The new value to set.
-         * @param first_idx The first index.
-         * @param indices The remaining indices.
-         */
-        template<typename U, typename... Args>
-        void set(T value, U first_idx, Args... indices) {
-            values[get_index(dims.begin(), U(0), first_idx, indices...)] = value;
         }
 
         /**
@@ -178,20 +157,31 @@ namespace EvSpikeSim {
 
     private:
         /**
-         * Counts the number of element in the dimension initializer list.
-         * @param dimensions The dimensions of the newly created array.
-         * @return The number of elements in the initializer list.
+         * Terminal condition of variadic initialization.
+         * @tparam U Type of n_elems.
+         * @tparam V Type of the current dimension to process.
+         * @param n_elems Number of elements accumulated.
+         * @param dim The current dimension to process.
          */
-        static std::size_t count_n_elems(const std::initializer_list<unsigned int> &dimensions) {
-            auto it = dimensions.begin();
-            std::size_t n_elems;
+        template<typename U, typename V>
+        void init_array(U n_elems, V dim) {
+            dims.push_back(dim);
+            values = EvSpikeSim::vector<T>(n_elems * dim);
+        }
 
-            if (it == dimensions.end())
-                return 0;
-            n_elems = *it;
-            while (++it != dimensions.end())
-                n_elems *= *it;
-            return n_elems;
+        /**
+         * Initializes the array with variadic dimension arguments.
+         * @tparam U Type of n_elems.
+         * @tparam V Type of the current dimension to process.
+         * @tparam Args Types of the remaining dimensions.
+         * @param n_elems Number of elements accumulated. Must be 1 at first call.
+         * @param dim The current dimension to process.
+         * @param args The remaining dimensions to process.
+         */
+        template<typename U, typename V, typename... Args>
+        void init_array(U n_elems, V dim, Args... args) {
+            dims.push_back(dim);
+            init_array(n_elems * dim, args...);
         }
 
         /**
@@ -226,7 +216,7 @@ namespace EvSpikeSim {
         }
 
     private:
-        const std::vector<unsigned int> dims; /**< The dimensions of the array */
+        std::vector<unsigned int> dims; /**< The dimensions of the array */
         EvSpikeSim::vector<T> values; /**< The data of the array */
     };
 }
